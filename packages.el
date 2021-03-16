@@ -57,5 +57,8 @@
 (package! scad-mode)
 (package! ox-json)
 (package! pinentry)
+
+;; Jabber (and related packages)
 (package! jabber)
 (package! srv)
+(package! fsm)

@@ -65,6 +65,7 @@
 ;; :os notify
 ;; https://www.emacswiki.org/emacs/notify.el
 (use-package! notify
+	      :defer t
 	      :init
 	      (add-to-list 'load-path (concat rjh-old-user-emacs-directory "/emacswiki/")))
 
@@ -233,6 +234,7 @@
 	      (setq jabber-roster-line-format " %c %-25n %u %-8s  %S")
 
 	      ;; Setup OS notifications
+	      (require 'notify)
 	      (defun notify-jabber-notify (from buf text proposed-alert)
 		"(jabber.el hook) Notify of new Jabber chat messages via notify.el"
 		(when (or jabber-message-alert-same-buffer
