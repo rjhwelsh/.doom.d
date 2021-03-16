@@ -50,3 +50,12 @@
 ;(unpin! t)
 ;; Org packages
 (package! org-edna)
+(package! rainbow-delimiters)
+(package! which-key)
+(package! xah-fly-keys)
+(package! crux)
+(package! scad-mode)
+(package! ox-json)
+(package! pinentry)
+(package! jabber)
+(package! srv)
