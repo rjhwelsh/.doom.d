@@ -78,11 +78,15 @@
 	     "org/gtd"
 	     ))))
 
+;; The following steps are required outside of Emacs
+;; Symlink ~/.emacs.doom/rjh          -> ~/domestic/static/emacs.d/
+;; Symlink ~/.emacs.doom/agenda-files -> ~/.emacs.rjh/agenda-files
+;; Symlink ~/.emacs.doom/org          -> ~/domestic/static/org-local/ 
+
 (after! org
 	;; org-solar config
 	(setq org-icalendar-with-timestamps t)
 	;; lon/lat information in private.el
-	;; Symlink required in ~/.emacs.doom/ to ~/domestic/static/emacs.d/
 
 	;; Load literate configuration
 	(mapc (lambda (f) (org-babel-load-file f)) rjh-org-mode-config-list)
