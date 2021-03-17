@@ -71,11 +71,6 @@
 
 ;; --------------------------------------------------------------------------------
 
-;; :tools magit
-(after! magit
-	(map! "C-x g" #'magit-status))
-
-
 ;; rainbow delimiters
 ;; https://github.com/Fanael/rainbow-delimiters
 (use-package! "rainbow-delimiters"
