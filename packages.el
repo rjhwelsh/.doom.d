@@ -48,17 +48,29 @@
 ;(unpin! pinned-package another-pinned-package)
 ;; ...Or *all* packages (NOT RECOMMENDED; will likely break things)
 ;(unpin! t)
+;
 ;; Org packages
 (package! org-edna)
-(package! rainbow-delimiters)
-(package! which-key)
-(package! xah-fly-keys)
-(package! crux)
-(package! scad-mode)
 (package! ox-json)
-(package! pinentry)
+(package! ox-hugo)
+(package! org-cv :recipe
+  (:host gitlab
+   :repo "Titan-C/org-cv"))
+(package! ox-awesomecv :recipe
+  (:host gitlab
+   :repo "zzamboni/org-cv"
+   :local-repo "awesome-cv"
+   :branch "awesomecv"))
 
 ;; Jabber (and related packages)
 (package! jabber)
 (package! srv)
 (package! fsm)
+
+;; Misc packages
+(package! rainbow-delimiters)
+(package! which-key)
+(package! xah-fly-keys)
+(package! crux)
+(package! scad-mode)
+(package! pinentry)
