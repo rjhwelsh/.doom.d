@@ -43,35 +43,29 @@
 		      (org-edna-mode)
 		      (setq org-edna-use-inheritance t)
 		      )
-	)
 
-;; :emacs files
-;; (How emacs handles files, backups, buffers, etc)
-(org-babel-load-file (concat rjh-old-init-dir "emacs/files.org"))
+        ;; Org-crypt
+        ;; :emacs epa-file
+        ;; https://orgmode.org/worg/org-tutorials/encrypting-files.html
+        (require 'epa-file)
+        (epa-file-enable)
 
-;; Function to move files in Emacs
-(org-babel-load-file (concat rjh-old-init-dir "zck.me/emacs-move-file.org"))
-
-;; :email mu4e
-(after! mu4e
-	(org-babel-load-file (concat rjh-old-init-dir    "djcb/mu4e.org"))
-	(org-babel-load-file (concat rjh-old-private-dir "my/email.org"))
-	(org-babel-load-file (concat rjh-old-private-dir "djcb/mu4e.org"))
-	)
-
-;; :os notify
-;; https://www.emacswiki.org/emacs/notify.el
-(use-package! notify
-	      :defer t
-	      :init
-	      (add-to-list 'load-path (concat rjh-old-user-emacs-directory "/emacswiki/")))
+        ;; Decrypt entries with M-x org-decrypt-entry
+        (use-package! "org-crypt"
+          :config
+          (org-crypt-use-before-save-magic)
+          (add-to-list 'org-tags-exclude-from-inheritance "crypt")
+          :custom
+          (org-crypt-key "8CFC62043A386EBEE9E9E9EE467F89276759B9A1")
+          (org-crypt-disable-auto-save 't))
+        )
 
 ;; --------------------------------------------------------------------------------
 
 ;; :org ox-json
 ;; (Exports org-files as json)
 (after! org
-        (require 'ox-json)) ;; CC-mode incompatible with emacs version
+        (require 'ox-json))
 
 
 ;; --------------------------------------------------------------------------------
@@ -126,3 +120,33 @@
 
     (unless (boundp 'org-latex-classes)
       (setq org-latex-classes nil))))
+
+;; --------------------------------------------------------------------------------
+
+;; Email
+;;
+;; :email mu4e
+(after! mu4e
+	(org-babel-load-file (concat rjh-old-init-dir    "djcb/mu4e.org"))
+	(org-babel-load-file (concat rjh-old-private-dir "my/email.org"))
+	(org-babel-load-file (concat rjh-old-private-dir "djcb/mu4e.org"))
+	)
+
+;; :os notify
+;; https://www.emacswiki.org/emacs/notify.el
+(use-package! notify
+	      :defer t
+	      :init
+	      (add-to-list 'load-path (concat rjh-old-user-emacs-directory "/emacswiki/")))
+
+
+;; --------------------------------------------------------------------------------
+
+;; Files
+
+;; :emacs files
+;; (How emacs handles files, backups, buffers, etc)
+(org-babel-load-file (concat rjh-old-init-dir "emacs/files.org"))
+
+;; Function to move files in Emacs
+(org-babel-load-file (concat rjh-old-init-dir "zck.me/emacs-move-file.org"))

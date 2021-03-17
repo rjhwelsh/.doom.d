@@ -51,6 +51,8 @@
 ;
 ;; Org packages
 (package! org-edna)
+
+;; Org-cv packages
 (package! ox-json)
 (package! ox-hugo)
 (package! org-cv :recipe
