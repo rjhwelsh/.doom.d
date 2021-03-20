@@ -61,7 +61,8 @@
 (package! ox-awesomecv :recipe
   (:host gitlab
    :repo "zzamboni/org-cv"
-   :local-repo "awesome-cv"
+   ;; :local-repo "awesome-cv" ;; (doom sync && doom purge)
+   :local-repo "/home/hrothgar/import/git/diego_zamboni_org-cv"
    :branch "awesomecv"))
 
 ;; Jabber (and related packages)
