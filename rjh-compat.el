@@ -121,6 +121,11 @@
     (unless (boundp 'org-latex-classes)
       (setq org-latex-classes nil))))
 
+;; :org ox-koma-letter
+;; Create beautiful letters using org-mode
+;; https://orgmode.org/worg/exporters/koma-letter-export.html
+(eval-after-load 'ox '(require 'ox-koma-letter))
+
 ;; --------------------------------------------------------------------------------
 
 ;; Email
