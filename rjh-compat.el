@@ -33,6 +33,11 @@
 	(setq org-icalendar-with-timestamps t)
 	;; lon/lat information in private.el
 
+        ;; idle time
+        ;; https://orgmode.org/manual/Resolving-idle-time.html
+        ;; TODO Add to literate configuration
+        (setq org-clock-idle-time 15)
+
 	;; Load literate configuration
 	(mapc (lambda (f) (org-babel-load-file f)) rjh-org-mode-config-list)
 
