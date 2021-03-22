@@ -60,6 +60,9 @@
 ;; :emacs tramp
 (eval-after-load 'tramp '(setenv "SHELL" "/bin/bash"))
 
+;; :emacs calendar
+(calendar-set-date-style 'european)
+
 ;; :os auth
 ;; https://www.masteringemacs.org/article/keeping-secrets-in-emacs-gnupg-auth-sources
 (require 'auth-source)
