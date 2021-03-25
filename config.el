@@ -54,7 +54,8 @@
 ;; they are implemented.
 
 (load! "rjh-compat.el")
-(load! "gentoo.el")
+(when (string-match "gentoo" (shell-command-to-string "uname -a"))
+  (load! "gentoo.el"))
 
 ;; --------------------------------------------------------------------------------
 ;; :emacs tramp
