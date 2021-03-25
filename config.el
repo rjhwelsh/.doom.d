@@ -104,10 +104,7 @@
 	      :init
 	      (require 'which-key)
 	      (which-key-mode)
-	      :hook (
-		     (xah-fly-command-mode-activate . which-key-show-top-level)
-		     (xah-fly-insert-mode-activate . which-key-show-top-level)
-		     ))
+              )
 
 ;; :editor xah-fly-keys
 (setq xah-fly-use-meta-key nil)
