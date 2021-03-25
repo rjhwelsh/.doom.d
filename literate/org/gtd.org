@@ -348,11 +348,6 @@ These keywords capture the GTD state of "projects".
 #+begin_src emacs-lisp
   (setq org-agenda-max-entries 1000)
 #+end_src
-*** Agenda Files List
-    Store the list of agenda files in ...
-    #+BEGIN_SRC emacs-lisp
-      (setq org-agenda-files (concat user-emacs-directory "/agenda-files") )
-    #+END_SRC
 *** Agenda sort strategy
 **** Functions
 ***** Calculate the number of seconds between *now* and the *closest timestamp* in entry
