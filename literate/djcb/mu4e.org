@@ -1,0 +1,94 @@
+* Mu4e :email:
+https://github.com/djcb/mu
+https://github.com/djcb/mu/tree/master/mu4e
+https://www.djcbsoftware.nl/code/mu/mu4e.html
+http://cachestocaches.com/2017/3/complete-guide-email-emacs-using-mu-and-/
+[[https://github.com/munen/emacs.d/#mu4e]]
+
+Enter mu4e with =M-x mu4e=.
+** Load-path
+Add installed mu emacs site-lisp to load-path.
+#+begin_src emacs-lisp
+  (add-to-list 'load-path "/usr/share/emacs/site-lisp/mu")
+  (require 'mu4e)
+#+end_src
+** Kill message buffers on exit
+Kill messages on exit
+#+begin_src emacs-lisp
+  (setq message-kill-buffer-on-exit t)
+#+end_src
+** PGP note
+For PGP encrypted emails, see =emacs/mml-sec=.
+** Bookmark common searches
+#+begin_src emacs-lisp
+  (mu4e-bookmark-define "flag:flagged" "Flagged messages" ?f)
+#+end_src
+** Header View
+
+Disable inclusion of related messages; can be toggled when in header-view (default key = W).
+This speeds up search and filtering.
+   #+begin_src emacs-lisp
+     (setq mu4e-headers-include-related nil)
+   #+end_src
+
+** Compose Options
+Compose messages to be sent as format=flowed.
+#+begin_src emacs-lisp
+  (setq mu4e-compose-format-flowed t)
+#+end_src
+
+Add spell checking to composing emails.
+#+begin_src emacs-lisp
+  (add-hook 'mu4e-compose-mode-hook 'flyspell-mode)
+#+end_src
+** Reading Options
+Prefer plain text for viewing emails. Always.
+#+begin_src emacs-lisp
+  (setq mu4e-view-html-plaintext-ratio-heuristic most-positive-fixnum)
+#+end_src
+
+Show full addresses in view message.
+#+begin_src emacs-lisp
+  (setq mu4e-view-show-addresses t)
+#+end_src
+
+Automatic line breaks when reading mail.
+#+begin_src emacs-lisp
+  (add-hook 'mu4e-view-mode-hook 'visual-line-mode)
+#+end_src
+** HTML Options
+Requires mu4e-contrib.
+   #+begin_src emacs-lisp
+     (require 'mu4e-contrib)
+   #+end_src
+
+Set conversion command.
+#+begin_src emacs-lisp
+  (setq mu4e-html2text-command 'mu4e-shr2text)
+  ;;(setq mu4e-html2text-command "iconv -c -t utf-8 | pandoc -f html -t plain")
+#+end_src
+
+Add option to view in browser.
+#+begin_src emacs-lisp
+  (add-to-list 'mu4e-view-actions '("ViewInBrowser" . mu4e-action-view-in-browser) t)
+#+end_src
+
+Do not respect html colors or fonts in Emacs.
+(This allows html messages to be colored according to your Emacs' theme.)
+#+begin_src emacs-lisp
+  (setq shr-use-colors nil)
+  (setq shr-use-fonts nil)
+#+end_src
+** Org capture integration
+https://www.djcbsoftware.nl/code/mu/mu4e/Org_002dmode-links.html
+   #+begin_src emacs-lisp
+ (define-key mu4e-headers-mode-map (kbd "C-c c") 'mu4e-org-store-and-capture)
+ (define-key mu4e-view-mode-map    (kbd "C-c c") 'mu4e-org-store-and-capture)
+   #+end_src
+** Lazy indexing
+https://www.djcbsoftware.nl/code/mu/mu4e/Retrieval-and-indexing.html#Speeding-up-indexing
+   #+begin_src emacs-lisp
+     (setq
+      mu4e-index-cleanup nil      ;; don't do a full cleanup check
+      mu4e-index-lazy-check t)    ;; don't consider up-to-date dirs
+   #+end_src

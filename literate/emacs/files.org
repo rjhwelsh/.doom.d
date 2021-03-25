@@ -1,0 +1,170 @@
+#+AUTHOR: Roger J. H. Welsh
+#+EMAIL: rjhwelsh@gmail.com
+#+PROPERTY: header-args    :results silent
+#+STARTUP: content
+
+* Files
+** Finding and opening files
+ Use =M-x= to run a command in Emacs.
+     - find-file :: Opens up a file buffer ( =C-x C-f= )
+
+** Auto-minor-mode-alist
+Alist of filename patterns vs corresponding *minor* mode functions.
+https://stackoverflow.com/questions/13945782/emacs-auto-minor-mode-based-on-extension
+
+#+begin_src emacs-lisp
+(defvar auto-minor-mode-alist ()
+  "Alist of filename patterns vs correpsonding minor mode functions, see `auto-mode-alist'
+All elements of this alist are checked, meaning you can enable multiple minor modes for the same regexp.")
+
+(defun enable-minor-mode-based-on-extension ()
+  "Check file name against `auto-minor-mode-alist' to enable minor modes
+the checking happens for all pairs in auto-minor-mode-alist"
+  (when buffer-file-name
+    (let ((name (file-name-sans-versions buffer-file-name))
+          (remote-id (file-remote-p buffer-file-name))
+          (case-fold-search auto-mode-case-fold)
+          (alist auto-minor-mode-alist))
+      ;; Remove remote file name identification.
+      (when (and (stringp remote-id)
+                 (string-match-p (regexp-quote remote-id) name))
+        (setq name (substring name (match-end 0))))
+      (while (and alist (caar alist) (cdar alist))
+        (if (string-match-p (caar alist) name)
+            (funcall (cdar alist) 1))
+        (setq alist (cdr alist))))))
+
+(add-hook 'find-file-hook #'enable-minor-mode-based-on-extension)
+#+end_src
+
+** Backup
+https://stackoverflow.com/questions/151945/how-do-i-control-how-emacs-makes-backup-files
+
+*** Disabling backups completely
+Below is an example snippet to disable backups completely. 
+#+begin_example emacs-lisp
+;; disable backup
+(setq backup-inhibited t)
+;; disable auto save
+(setq auto-save-default nil)
+#+end_example
+
+*** Backup variables
+  Backup cache locations.
+  #+BEGIN_SRC emacs-lisp
+    (setq
+     my/emacs-backup-cache "~/.cache/emacs/save"
+     my/emacs-backup-session "~/.cache/emacs/session"
+     )
+  #+END_SRC
+
+*** Backup files =~=
+**** Make backup files
+#+begin_src emacs-lisp
+  (setq 
+   make-backup-files t 
+   )
+#+end_src
+**** Backup directory
+#+begin_src emacs-lisp
+  (setq 
+   backup-directory-alist `((".*" . ,my/emacs-backup-cache )) ; don't litter the filetree ; only make backups of files in homedir
+   )
+#+end_src
+**** Backup by  copying
+This prevents hard-links from breaking; otherwise Emacs renames files
+when creating backups which break the inode association with any
+hard-links. See [[help:make-backup-files]].
+#+begin_src emacs-lisp
+  (setq
+   backup-by-copying t 
+   backup-by-copying-when-linked t
+   )
+#+end_src
+**** Keep versions of backups
+#+BEGIN_SRC emacs-lisp
+  (setq 
+   version-control t
+   kept-new-versions 6
+   kept-old-versions 2
+   delete-old-versions t
+   )
+#+END_SRC
+
+*** Auto-save files =#=
+    Auto-save files use hashmarks (#) and shall be written locally
+    within the project directory (along with the actual files). 
+
+    When the user saves the file, the auto-saved version is deleted. But
+    when the user exits the file without saving it, Emacs or the X session
+    crashes, the auto-saved files still exist.
+
+    Auto-save is nowadays disabled by default because it can slow down
+    editing when connected to a slow machine, and because many files
+    contain sensitive data.
+**** Auto save default
+#+begin_src emacs-lisp
+  (setq
+   auto-save-default t
+   )
+#+end_src
+
+**** Auto save periods
+#+begin_src emacs-lisp
+  (setq
+   auto-save-timeout 20
+   auto-save-interval 200
+   )
+#+end_src
+
+*** Sensitive-minor-mode
+https://anirudhsasikumar.net/blog/2005.01.21.html 
+
+This mode handles disabling backups for sensitive files. 
+
+Disable backups/auto-saves for the following file regexps by appending
+them to =auto-mode-alist=.
+#+begin_src emacs-lisp
+  (setq auto-minor-mode-alist 
+	(append 
+	 (list
+	   '("\\.gpg$" . sensitive-minor-mode)
+	   '("\\.vcf$" . sensitive-minor-mode)
+	   '("/etc/" . sensitive-minor-mode) 
+	   '("private" . sensitive-minor-mode) 
+	   )
+	 auto-minor-mode-alist))
+#+end_src
+
+
+After evaluating the below snippet, using =M-x sensitive= will disable
+backups and auto-save in the current buffer.
+
+#+begin_src emacs-lisp
+(define-minor-mode sensitive-minor-mode
+  "For sensitive files like password lists.
+It disables backup creation and auto saving.
+
+With no argument, this command toggles the mode.
+Non-null prefix argument turns on the mode.
+Null prefix argument turns off the mode."
+  ;; The initial value.
+  nil
+  ;; The indicator for the mode line.
+  " Sensitive"
+  ;; The minor mode bindings.
+  nil
+  (if (symbol-value sensitive-minor-mode)
+      (progn
+	;; disable backups
+	(set (make-local-variable 'backup-inhibited) t)	
+	;; disable auto-save
+	(if auto-save-default
+	    (auto-save-mode -1)))
+    ;resort to default value of backup-inhibited
+    (kill-local-variable 'backup-inhibited)
+    ;resort to default auto save setting
+    (if auto-save-default
+	(auto-save-mode 1))))
+#+end_src
+

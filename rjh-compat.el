@@ -4,9 +4,8 @@
 (defun rjh/use (&rest c) nil)
 
 ;; Currently used config
-(defvar rjh-old-init-dir "~/domestic/static/emacs.d/init/")
-(defvar rjh-old-private-dir "~/.emacs.rjh/private/")
-(defvar rjh-old-user-emacs-directory "~/.emacs.rjh/")
+(defvar rjh-old-init-dir (concat doom-private-dir "literate/"))
+(defvar rjh-old-private-dir (concat doom-private-dir "private/"))
 
 ;; Config for org-mode
 (defvar rjh-org-mode-config-list
@@ -147,7 +146,7 @@
 (use-package! notify
 	      :defer t
 	      :init
-	      (add-to-list 'load-path (concat rjh-old-user-emacs-directory "/emacswiki/")))
+	      (add-to-list 'load-path (concat doom-private-dir "emacswiki/")))
 
 
 ;; --------------------------------------------------------------------------------

@@ -1,0 +1,1391 @@
+#+TITLE: Getting Things Done with Org-mode
+#+AUTHOR: Roger J. H. Welsh
+#+EMAIL: rjhwelsh@posteo.net
+#+PROPERTY: header-args :results silent
+#+STARTUP: content
+
+#+begin_src emacs-lisp
+  (rjh/use "org/org:private")
+#+end_src
+
+* Capture
+Change default capture file.
+   #+begin_src emacs-lisp
+ (setq org-default-notes-file (expand-file-name "0inbox.org" (expand-file-name "gtd" org-directory)))
+   #+end_src
+
+* Archive
+Set default archive location to be 4trash in the current directory.
+  #+begin_src emacs-lisp
+    (setq org-archive-location "4trash.org::datetree/* %s" )
+  #+end_src
+* Agenda
+** Keywords
+*** Function to extract todo keywords from variable
+    #+begin_src emacs-lisp
+      (defun org-todo-keywords-extract (&optional todo-keywords) 
+	"Extract todo keywords from the `org-todo-keywords' variable."
+	(mapcar 
+	 (lambda (sequence)
+	   (let* ((keywords (cdr sequence)))
+	     (org-remove-keyword-keys keywords)
+	     ))
+	 (or todo-keywords org-todo-keywords)))
+    #+end_src
+
+*** Todo item workflow
+   Workflow states have been taken from gjstein/sachachua.
+   See gjstein [[http://cachestocaches.com/2016/9/my-workflow-org-agenda/#][here]].
+   See sachachua [[https://sachachua.com/blog/2007/12/emacs-getting-things-done-with-org-basic/][here]].
+
+   - todo :: Indicate tasks / projects which need to get done
+   - next :: Tasks which are being done "next" within a particular project
+   - started :: Tasks which have been started
+   - waiting :: Tasks waiting on someone else.
+     Log notes on what this is waiting on.
+   - done :: Completed task
+
+   For below; make the following notes:
+   + Expressions may be a "sequence" or "type" ; "type" goes straight to DONE
+     after completion. Sequences rotate through all keywords.
+   + TODO = the todo keyword
+   + (t) = the fast key shortcut
+   + ! means LOG timestamp when changing *TO* state.
+   + @ means LOG note when changing *TO* state.
+   + X/Y means perform X when changing *TO* state, and Y when changing *FROM* state.
+   #+BEGIN_SRC emacs-lisp
+     (setq org-todo-keywords
+	   '((sequence "TODO(t)" "NEXT(n)" "STARTED(s!)" "WAITING(w!/!)" "|" "DONE(d!)")
+	     ))
+   #+END_SRC
+   + org-log-into-drawer LOGS everything into a hidden drawer, so everything looks cleaner.
+   #+BEGIN_SRC emacs-lisp
+     (setq org-log-into-drawer t) ;;LOGBOOK
+   #+END_SRC
+
+   For group projects, put this at the top of the project line for custom keywords.
+   #+BEGIN_EXAMPLE
+   #+TYP_TODO: @MYNAME(m) @NAME1(1) @NAME2(2) | DONE(d)
+   #+END_EXAMPLE
+*** GTD workflow 
+These keywords capture the GTD state of "projects".
+#+begin_src emacs-lisp
+  (setq org-gtd-workflow
+      ;; The next stage for this project is ... 
+	'(sequence
+	  "COLLECT(1!)" ;; Thoughts need to be collected for this project (synonym: brainstorm)
+	  "CLARIFY(2!)" ;; Current thoughts need to clarified into what things mean, and what to do.
+	  "ORGANIZE(3!)" ;; The results need to be organized, shifted into the right bucket
+	;; Scheduled/deadline/timed actions
+	;; NEXT actions
+	;; Waiting actions
+	;; Project plans, REFILE to alternative project?
+	;; Reference material
+	;; Someday/Maybe, hold for review
+	;; Trash
+	  "REVIEW(4!)"  ;; Gather, and process stuff, review system, update your lists, get clean/clear/current complete
+	;; Everything is organized here, but not prioritized/reviewed
+	;; Review is the final check before committing a project to action
+	  "DO(5!)"      ;; Stuff ready for action
+	;; Everything is stream-lined and ready to go for this task
+	  "|"
+	  ))
+
+  ;; Append to org-todo-keywords
+  (setq org-todo-keywords (append org-todo-keywords (list org-gtd-workflow)))
+
+  ;; Plain keywords for agenda view construction
+  (setq org-gtd-workflow-1 (car (org-todo-keywords-extract (list (remove "|" org-gtd-workflow)))))
+#+end_src
+** Stuck Projects
+   1. Match projects as
+      1. Any LEVEL 1 headline
+      2. Do not match completed headlines
+      3. Do not match items tagged with NOARCHIVE
+      3. Do not match items tagged with DOC; documentation-only
+   2. Non-stuck projects have headlines which contain a NEXT todo-keyword.
+   3. Non-stuck projects have headlines which may contain a specific tag; but not
+      in this case.
+   4. Non-stuck projects are identified if the special word IGNORE is matched
+      anywhere.
+   #+BEGIN_SRC emacs-lisp
+     (setq org-stuck-projects
+	   '("-DOC-NOARCHIVE+LEVEL>=1/-DONE" 
+	     ("NEXT")
+	     nil 
+	     "\\<IGNORE\\>"
+	     ))
+   #+END_SRC
+
+** Tags
+   Tags represent environmental conditions before a task can be undertaken.
+   Tasks should be organized by a hierarchy of projects and sub-projects.
+   Projects are prioritized, tags develop views for batch processing tasks.
+
+   IF <tag> THEN <task>
+   IF <condition> THEN <task>
+   IF <tag1> AND <tag2> AND ... THEN <task>
+
+   Tags should not be inherited by sub-tasks.
+   Sub-tasks should differentiate work dependencies only.
+
+*** Default tags
+    See =org-tag-alist= for more details.
+    #+BEGIN_SRC emacs-lisp
+      (setq org-tag-alist '())
+    #+END_SRC
+*** Tag inheritance
+    Inherit all tags.
+    #+BEGIN_SRC emacs-lisp
+      (setq org-use-tag-inheritance t)
+    #+END_SRC
+
+    This will exclude all tags from =org-tag-persistent-alist= from being inherited.
+    #+BEGIN_SRC emacs-lisp
+      (setq org-tags-exclude-from-inheritance (mapcar 'car org-tag-persistent-alist))
+    #+END_SRC
+
+*** Functions to expire tags
+    Expiration tags are temporary tags for grouping TODO items in a short-term
+    meaningful way. These functions quickly expunge these temporary tags in bulk, to
+    facilitate better short-term planning and turnover.
+
+    Expiration tags.
+    #+BEGIN_SRC emacs-lisp
+      (defcustom rjh/org-tags-expiration-tags
+	(mapcar 'car org-tag-persistent-alist)
+	"Org-mode tags which can be removed quickly, with org-tags-expire."
+	;; The rest of this is copied from org-tag-persistent-alist
+	:group 'org-tags
+	:type '(repeat
+		(choice
+		 (cons :tag "Tag with key"
+		       (string    :tag "Tag name")
+		       (character :tag "Access char"))
+		 (list :tag "Tag" (string :tag "Tag name"))
+		 (const :tag "Start radio group" (:startgroup))
+		 (const :tag "Start tag group, non distinct" (:startgrouptag))
+		 (const :tag "Group tags delimiter" (:grouptags))
+		 (const :tag "End radio group" (:endgroup))
+		 (const :tag "End tag group, non distinct" (:endgrouptag))
+		 (const :tag "New line" (:newline)))))
+    #+END_SRC
+
+    Generic interactive function.
+    - Will expire tags for current item
+    - Will expire tags for entire buffer when called with a prefix.
+    #+BEGIN_SRC emacs-lisp
+      (defun rjh/org-tags-expire (ARG)
+	"Expires all expiration tags.
+      PREFIXARG = Expire tags in buffer if non-nil"
+	(interactive "p")
+	(if (>= ARG 4)
+	    (rjh/org-tags-expire-buffer)
+	  (if (org-region-active-p)
+	      (call-interactively 'rjh/org-tags-expire-region)
+	    (rjh/org-tags-expire-entry))))
+    #+END_SRC
+
+**** org-mode
+     These provide functions for removing expiration-tags in the current
+     =org-mode= buffer.
+
+     Tag expiration for headline.
+     #+BEGIN_SRC emacs-lisp
+       (defun rjh/org-tags-expire-headline ( expiration-tags )
+	 "Removes all expiration tags from headline."
+	 (let ((newtagslist (org-get-tags nil t)))
+	   (unless (null newtagslist)
+	     (dolist (element expiration-tags)
+	       (when (member element newtagslist)
+		 (setq newtagslist (delete element newtagslist))))
+	     (org-set-tags newtagslist)
+	     (org-reveal))))
+     #+END_SRC
+
+     Tag expiration for entry (interactive).
+     #+BEGIN_SRC emacs-lisp
+       (defun rjh/org-tags-expire-entry ()
+	 "Expires all expiration tags in current entry."
+	 (interactive)
+	 (save-excursion
+	   (org-back-to-heading 't)
+	   (rjh/org-tags-expire-headline rjh/org-tags-expiration-tags)))
+     #+END_SRC
+
+     Tags expiration for buffer (interactive).
+     #+BEGIN_SRC emacs-lisp
+       (defun rjh/org-tags-expire-buffer ()
+	 "Expires all expiration tags in current buffer.
+       Includes invisible heading lines."
+	 (interactive)
+	 (save-excursion
+	   (goto-char (point-min))
+	   (while (outline-next-heading)
+	     (rjh/org-tags-expire-headline rjh/org-tags-expiration-tags))))
+     #+END_SRC
+
+     Tags expiration for a region of an org buffer.
+     #+BEGIN_SRC emacs-lisp
+       (defun rjh/org-tags-expire-region (start end)
+	 "Expires all expiration tags in current region."
+	 (interactive "r")
+	 (dolist (element rjh/org-tags-expiration-tags)
+	   (org-change-tag-in-region start end element 'off)))
+     #+END_SRC
+
+**** org-agenda
+     These are functions to remove expiration tags in the =org-agenda=.
+
+     Tag expiration for an agenda headline.
+     #+BEGIN_SRC emacs-lisp
+       (defun rjh/org-tags-expire-agenda-headline ( expiration-tags )
+	 "Removes all expiration tags from an AGENDA headline."
+	 (dolist (element expiration-tags)
+	   (org-agenda-set-tags element 'off)))
+     #+END_SRC
+
+     Tag expiration for an agenda buffer.
+     #+BEGIN_SRC emacs-lisp
+       (defun rjh/org-tags-expire-agenda-buffer ()
+	 "Removes all expiration tags from an AGENDA buffer."
+	 (interactive)
+	 (save-excursion
+	   (goto-char (point-min))
+	   (while (and (org-agenda-next-item 1)
+		       (next-single-property-change (point-at-eol) 'org-marker))
+	     (rjh/org-tags-expire-agenda-headline rjh/org-tags-expiration-tags))))
+     #+END_SRC
+
+     Generic interactive agenda function.
+     - Will expire selected headlines
+     - Will expire whole agenda buffer with prefix.
+     #+BEGIN_SRC emacs-lisp
+       (defun rjh/org-tags-expire-agenda (ARG)
+	 "Expires tags in org-agenda view."
+	 (interactive "p")
+	 (save-excursion
+	   (if (>= ARG 4)
+	       (rjh/org-tags-expire-agenda-buffer)
+	     (if (org-region-active-p)
+		 (call-interactively 'rjh/org-tags-expire-region)
+	       (rjh/org-tags-expire-agenda-headline rjh/org-tags-expiration-tags)))))
+     #+END_SRC
+
+*** Column
+    Set tag column formatting relative to headline.
+    #+begin_src emacs-lisp
+      (setq org-tags-column 0)
+    #+end_src
+
+    Set tag column formatting for agenda.
+    #+begin_src emacs-lisp
+      (setq org-agenda-tags-column -80)
+    #+end_src
+** Priorities
+*** Keys
+    Use "C-c ," to quickly set priorities.
+    Only "," is required in agenda.
+
+*** Default Priority Values
+    Priorities are assigned A,B,C,D (E,F). B being the default.
+    I'm particularly inspired by the Eisenhower Matrix and Must/Should/Nice todos.
+    For reference, see the table below. Typically, one should attempt to accomplish
+    as many B's in a day as possible; while also taking regular breaks.
+    If you have nothing left todo, D's are pleasant enough.
+
+    | PRIORITY   | NOT IMPORTANT | IMPORTANT  |
+    |------------+---------------+------------|
+    | NOT URGENT | D - PLEASANT  | B - SHOULD |
+    |------------+---------------+------------|
+    | URGENT     | C - NICE      | A - MUST   |
+    |------------+---------------+------------|
+
+    So.. one way to describe my priorities, would be...
+    #+BEGIN_EXAMPLE
+    #+PRIORITIES: C A F .
+    #+END_EXAMPLE
+
+    #+BEGIN_SRC emacs-lisp
+      (setq org-default-priority ?D)
+      (setq org-highest-priority ?A)
+      (setq org-lowest-priority ?F)
+    #+END_SRC
+
+** Dependencies
+   Dependency settings.
+   This allows for task blocking/etc.
+   #+BEGIN_SRC emacs-lisp
+     (setq org-enforce-todo-dependencies t)
+     (setq org-agenda-dim-blocked-tasks t)
+     (setq org-enforce-todo-checkbox-dependencies nil)
+   #+END_SRC
+
+** Views
+*** Agenda settings
+**** Use current window
+   Take up current window when called.
+    #+BEGIN_SRC emacs-lisp
+      (setq org-agenda-window-setup 'current-window)
+    #+END_SRC
+
+**** Include diary entries
+     #+begin_src emacs-lisp
+       (setq org-agenda-include-diary t)
+     #+end_src
+**** Agenda prefix format
+     Prefix format
+     #+begin_src emacs-lisp
+       (setq org-agenda-prefix-format
+	     '((agenda . "%?-12t%?-12s ")
+	       (todo .   "%12:c ")
+	       (tags .   "%12:c ")
+	       (search . "%12:c%b "))
+	     )
+     #+end_src
+**** Limits
+     Limit the number of results in the agenda. 
+#+begin_src emacs-lisp
+  (setq org-agenda-max-entries 1000)
+#+end_src
+*** Agenda Files List
+    Store the list of agenda files in ...
+    #+BEGIN_SRC emacs-lisp
+      (setq org-agenda-files (concat user-emacs-directory "/agenda-files") )
+    #+END_SRC
+*** Agenda sort strategy
+**** Functions
+***** Calculate the number of seconds between *now* and the *closest timestamp* in entry
+      #+begin_src emacs-lisp
+	(defun org-score-get-seconds-to-now (pom)
+	  "Returns the difference between closest timestamp item to now in seconds.
+		Returns nil if there are no available timestamps to score."
+	  (let* ((now (float-time))
+		 (time-props '("DEADLINE" "SCHEDULED" "TIMESTAMP"))
+		 (time-sec-or-nil 
+		  (mapcar 
+		   (lambda (prop)
+		     (let* ((ts (org-entry-get pom prop))
+			    (secs (when ts (org-time-string-to-seconds ts)))
+			    (dt (when secs (- now secs)))
+			    (dta (when dt (abs dt))))
+		       dta))
+		   time-props))
+		 (time-sec (remove nil time-sec-or-nil))
+		 )
+	    (when time-sec
+	      (apply 'min time-sec)
+	      )))
+      #+end_src
+
+***** Obtain a numerical representation of the stage of the current workflow in the current entry
+      #+begin_src emacs-lisp
+	(defun org-score-get-todo-state-number (pom) 	
+	  "Gets the current todo state as a float.
+		The float represents 1.0 as complete and 0.0 as incomplete/unstarted"
+	  (let ((todostate (org-entry-get pom "TODO"))) ;; Get todo keyword at point	   
+	    (apply 
+	     ;; Returns nil if there is no todo keyword
+	     (lambda (&rest number-or-nil-list) 
+	       (let ((number-list (remove nil number-or-nil-list)))
+		 (if number-list
+		     (apply 'min (remove nil number-list)))))
+	     (mapcar 
+	      (lambda (keywords) 
+		(let* ((done-keywords (member "|" keywords))
+		       (todo-keywords (cdr (member "|" (reverse keywords))))
+		       (todo-stage (member todostate todo-keywords))
+		       (done-stage (member todostate done-keywords)))
+		  (cond 
+		   (todo-stage
+		    ;; Divide result by total length
+		    (/
+		     (float (length todo-stage)) ;; Get distance from end of workflow
+		     (float (- 
+			     (1+ (length keywords))                       ;; Total length
+			     (if done-keywords (length done-keywords) 1)  ;; Length of done keywords incl "|"
+			     ))))
+		   (done-stage 1.0)
+		   (t nil))))
+	      (org-todo-keywords-extract org-todo-keywords)))))
+      #+end_src
+
+***** TODO Obtain a numerical representation of the priority value
+
+***** Obtain the character marker for the parent entry
+      #+begin_src emacs-lisp
+	(defun org-score-get-parent-marker (pom)
+	  "Gets the value of the score for FUNC evaluated on the parent headline of the current entry at POM."
+	  (if pom
+	      (org-with-point-at pom
+		;; (when (and (org-current-level) (> (org-current-level) 1)))
+		(org-up-heading-or-point-min)
+		(point-marker))
+	    pom))
+      #+end_src
+
+***** A variable that provides tuning co-efficients for scoring function
+  #+begin_src emacs-lisp
+    (defvar org-score-vector nil
+      "A list of functions and polynomial score coefficients used to calculate the score of an org entry at-point.
+
+    Each list element consists of a FUNCTION SYMBOL and a series of FLOATs like '('org-score-get-todo-state-number 1.0 2.0).
+    If the function returns nil at POM, the score returned will be 0, disregarding any coefficients for that element.
+    Each function must take a single POM (point-marker) argument.
+
+    For a single element, n:
+    Let '(F k0 k1); the score, Sn is calculated as follows:
+    Sn = k0 + k1*F + k2*F^2 ...
+
+    The scores for all the elements in org-score-vector are added together to form the final score. 
+    Stotal = S0 + S1 + S2 + S3 + .... 
+    ")
+  #+end_src
+
+***** A scoring function, /org-score-score-at-marker/
+      #+begin_src emacs-lisp
+	(defun org-score-score-at-marker (pom) 
+	  "Returns the score of org-entry at marker POM based on the `org-score-vector' values."
+	  (if org-score-vector
+	      (apply '+ 
+		     (mapcar 
+		      (lambda (score-vec) 
+			(let ((value-n 
+			       (funcall (car score-vec) pom)) ;; Each function should be able to be called with pom only
+			      (klist (cdr score-vec))         ;; List of coeffs, k0, k1, k2 ...			  
+
+			      (n 0) 
+			      (result 0)
+			      )
+			  (if value-n
+			      (dolist (k klist result)
+				(setq result (+ result (* k (expt value-n n))))
+				(setq n (1+ n)))
+			    0
+			    )))
+		      org-score-vector
+		      ))
+	    0))
+      #+end_src
+***** Basic sort function that relies on *non-existent* /org-agenda-score-entry-at-point/  
+      #+begin_src emacs-lisp
+	(defun org-score-user-defined-sort (a b)
+	  "Sorting strategy for agenda items."
+	  (let* ((ma (or (get-text-property 1 'org-marker a)
+			 (get-text-property 1 'org-hd-marker a)))
+		 (mb (or (get-text-property 1 'org-marker b)
+			 (get-text-property 1 'org-hd-marker b)))
+		 (sa (org-score-score-at-marker ma))
+		 (sb (org-score-score-at-marker mb)))
+	    (cond ((< sa sb) -1)
+		  ((< sb sa) +1)
+		  (t nil))))
+      #+end_src
+***** Enable user-defined score sort for org-agenda
+      #+begin_src emacs-lisp
+	(setq org-agenda-cmp-user-defined 'org-score-user-defined-sort)
+      #+end_src
+**** Org-score-vector
+See Functions above for a detailed reference to this variable.
+     #+begin_src emacs-lisp
+       (setq org-score-vector 
+	     `(;; Todo-state scoring
+	       (org-score-get-todo-state-number 1000 1000)
+	       ((lambda (pom) (org-score-get-todo-state-number (org-score-get-parent-marker pom))) 2000 2000)
+	       ;; Distance from now (timestamp) scoring
+	       ((lambda (pom) 
+		  (let ((score (org-score-get-seconds-to-now pom))) 
+		    (when score (/ score 60.0 60.0 24.0)))) 7000 -1000)
+	       ;; Priority scoring
+	       ((lambda (pom)
+		  (let* ((S (org-entry-get pom "PRIORITY"))
+			 (pri (when S (org-priority-to-value S))))
+		    (when pri (- (- pri org-priority-default))))) 
+		0 2000)
+	       ((lambda (pom)
+		  (let* ((pom (org-score-get-parent-marker pom))
+			 (S (org-entry-get pom "PRIORITY"))
+			 (pri (when S (org-priority-to-value S))))
+		    (when pri (- (- pri org-priority-default))))) 0 4000)
+	       )
+	     )
+     #+end_src
+**** Clear org-agenda-sorting-strategy list
+     
+    #+begin_src emacs-lisp
+      (setq org-agenda-sorting-strategy '())
+    #+end_src
+**** Agenda
+     #+begin_src emacs-lisp
+       (add-to-list 'org-agenda-sorting-strategy
+		    '(agenda 
+		      user-defined-down
+		      time-up 
+		      deadline-up 
+		      scheduled-up 
+		      todo-state-down
+		      ))
+     #+end_src
+**** Todo
+     #+begin_src emacs-lisp
+       (add-to-list 'org-agenda-sorting-strategy
+		    '(todo
+		      user-defined-down
+		      ))
+     #+end_src
+**** Tags
+     #+begin_src emacs-lisp
+       (add-to-list 'org-agenda-sorting-strategy
+		    '(tags
+		      user-defined-down
+		      ))
+     #+end_src
+**** Search
+     #+begin_src emacs-lisp
+       (add-to-list 'org-agenda-sorting-strategy
+		    '(search
+		      user-defined-down
+		      ))
+     #+end_src
+*** Agenda Skip Functions
+**** Org-agenda-skip-function
+     Use =org-agenda-skip-function= option to define a function to skip entries. 
+     - When the function returns nil, the entry will be skipped
+     - Otherwise the function must return a position from where the search should continue
+#+begin_example el
+(let (org-agenda-skip-function '(org-agenda-skip-entry-if 'todo 'done)))
+#+end_example
+
+**** Skip entries that are blocked
+     https://emacs.stackexchange.com/questions/14724/emacs-org-mode-how-to-make-agenda-views-of-blocked-parent-tasks
+     A function that skips any task that is blocked (because of some dependency). 
+     #+begin_src emacs-lisp
+       (defun org-agenda-skip-entry-if-blocked ()
+	 "Skip entry if it is blocked."
+	 (let ((next-headline 
+		(save-excursion
+		  (or (outline-next-heading) (point-max))))
+	       ;; Do not skip items blocked by checkboxes
+	       (org-enforce-todo-checkbox-dependencies nil))
+	   (if (org-entry-blocked-p) next-headline)))
+     #+end_src
+
+**** Skip entries that have a particular file path
+A function that skips entries based on the location of the file.
+#+begin_src emacs-lisp
+  (defun org-agenda-skip-entry-if-file-path (regexp &optional inverse)
+    "Skip entry if it is in a file on path."
+    (let* ((path (buffer-file-name))
+	   (match-p (string-match regexp path)))
+      (if match-p (point-max))
+      ))
+#+end_src
+
+**** Skip headline if it matches a regexp
+     #+begin_src emacs-lisp
+       (defun org-agenda-skip-if-regexp (skip-re)
+	 "Skip headline if regexp matches the headline"
+	 (let* ((next-headline (save-excursion (or (outline-next-heading) (point-max))))
+		(subtree-end (save-excursion (org-end-of-subtree t)))
+		(current-level (org-current-level)) 
+		(match-p 
+		 (save-excursion
+		   (let ((case-fold-search nil)
+			 (eol (save-excursion (org-end-of-line nil) (point))))
+		     (re-search-forward 
+		      skip-re eol t)))))
+	   (if match-p next-headline)))
+     #+end_src
+
+**** Skip sub-tree functions 
+     These sub-tree skipping functions are derived from =org-agenda-list-stuck-projects=.
+***** Skip sub-tree based on regexp match
+#+begin_src emacs-lisp
+  (defun org-agenda-skip-subtree-if-regexp (skip-re)
+    "Skip subtree if regexp matches anywhere inside subtree, not including current headline."
+    ;; Skip entry if `org-agenda-skip-regexp' matches anywhere
+    ;; in the subtree.
+    (let* ((next-headline (save-excursion (or (outline-next-heading) (point-max))))
+	   (subtree-end (save-excursion (org-end-of-subtree t)))
+	   (current-level (org-current-level)) 
+	   (match-p 
+	    (save-restriction
+	      (widen)
+	      (save-excursion
+		(let ((case-fold-search nil))
+		  (progn
+		    ;; skip over current headline
+		    (org-end-of-line nil)
+		    (if (< (point) subtree-end)
+			    (re-search-forward
+			     skip-re subtree-end t))
+		    ))))))
+      (if 
+	  (or 
+	   (and invert (not match-p))
+	   (and (not invert) match-p))
+	  next-headline
+	)))
+  #+end_src
+***** Skip sub-tree based on tags present
+#+begin_src emacs-lisp
+  (defun org-agenda-skip-subtree-if-tags (tags)
+    "Skip subtree if any of the tags match.
+  Tags is a list of tags"
+    (let* ((tags-re (cond ((null tags) nil)
+			  ((member "*" tags) org-tag-line-re)
+			  (tags
+			   (let ((other-tags (format "\\(?:%s:\\)*" org-tag-re)))
+			     (concat org-outline-regexp-bol
+				     ".*?[ \t]:"
+				     other-tags
+				     (regexp-opt tags t)
+				     ":" other-tags "[ \t]*$")))
+			  (t nil)))
+	   (re-list (delq nil (list tags-re)))
+	   (skip-re
+	    (if (null re-list)
+		(error "Missing information to identify unstuck projects")
+	      (mapconcat #'identity re-list "\\|"))))
+      (org-agenda-skip-subtree-if-regexp skip-re)))
+  #+end_src
+***** Skip sub-tree based on todo keywords present
+#+begin_src emacs-lisp
+  (defun org-agenda-skip-subtree-if-todo (todo)
+    "Skip subtree if any of the todo keywords match.
+  todo is a list of todo keywords"
+    (let* ((todo-wds
+	    (if (not (member "*" todo)) todo
+	      (org-agenda-prepare-buffers (org-agenda-files nil 'ifmode))
+	      (org-delete-all org-done-keywords-for-agenda
+			      (copy-sequence org-todo-keywords-for-agenda))))
+	   (todo-re (and todo
+			 (format "^\\*+[ \t]+\\(%s\\)\\>"
+				 (mapconcat #'identity todo-wds "\\|"))))
+	   (re-list (delq nil (list todo-re)))
+	   (skip-re
+	    (if (null re-list)
+		(error "Missing information to identify unstuck projects")
+	      (mapconcat #'identity re-list "\\|"))))
+      (org-agenda-skip-subtree-if-regexp skip-re)))
+  #+end_src
+
+**** Skip if immediate parent/child nodes match
+***** Skip headline if immediate children would be skipped
+      #+begin_src emacs-lisp
+	(defun org-agenda-skip-if-children (depth skip-function &rest skip-func-args )
+	  "Skip headline if any children match the SKIP-FUNCTION and SKIP-FUNC-ARGS
+	   Any children below the DEPTH relative to the root node are ignored.
+	   DEPTH = nil, will recursively search entire subtree
+	   "
+	  (let* ((next-headline (save-excursion (or (outline-next-heading) (point-max))))
+		 (subtree-end (save-excursion (org-end-of-subtree t)))
+		 (current-level (org-current-level))
+		 (maximum-level 
+		  (and 
+		   depth
+		   (+ current-level depth)))
+		 (match-p 
+		  (save-restriction
+		    (widen)
+		    (save-excursion
+		      (progn
+			;; skip over current headline
+			(org-end-of-line nil)
+			;; Only match immediate children headlines with skip-function
+			(let ((retval nil))
+			  (cl-loop
+			   ;; Return value or past end of subtree
+			   (if 
+			       (or retval
+				   (>= (point) subtree-end))
+			       (return retval))
+			   (if 
+			       (outline-next-heading)
+			       ;; Skip unless exactly 1 level deeper than current headline
+			       (if 
+				   (or 
+				    (not maximum-level) ;; Accept any node if depth is nil
+				    (and
+				     (> (org-current-level) current-level) ;; deeper than subtree root
+				     (<= (org-current-level) maximum-level) ;; not as deep as maximum level
+				     ))
+				   (setq retval (apply skip-function skip-func-args)))
+			     ;; No more headings.. return
+			     (return retval))
+			   )))))))
+	    (if match-p next-headline)))
+      #+end_src
+***** Skip headline if immediate parent would be skipped
+      #+begin_src emacs-lisp
+	(defun org-agenda-skip-if-parent (skip-function &rest skip-func-args)
+	  "Skip headline if any immediate parents match the SKIP-FUNCTION and SKIP-FUNC-ARGS"
+	  (let* ((prev-headline (save-excursion (or (outline-previous-heading) (point-min))))
+		 (next-headline (save-excursion (or (outline-next-heading) (point-max))))
+		 (subtree-end (save-excursion (org-end-of-subtree t)))
+		 (current-level (org-current-level)) 
+		 (match-p 
+		  (save-restriction
+		    (widen)
+		    (save-excursion
+		      (progn
+			;; Return nil if no parents
+			(when (> (org-current-level) 1)
+			  ;; Move to parent heading
+			  (outline-up-heading 1)
+			  ;; Apply skip function to immediate parent only
+			  (apply skip-function skip-func-args))
+			)))))
+	    (if match-p next-headline)))
+      #+end_src
+**** Invert skip function
+     #+begin_src emacs-lisp
+       (defun org-agenda-skip-invert (skip-function &rest skip-func-args)
+	 "Skip headline if the SKIP-FUNCTION with SKIP-FUNC-ARGS returns nil"
+	 (let* ((next-headline (save-excursion (or (outline-next-heading) (point-max))))
+		(match-p (apply skip-function skip-func-args)))
+	   (if (not match-p) next-headline)))
+     #+end_src
+**** Org element API skipping functions
+***** Skip element based on regexp match of property
+     #+begin_src emacs-lisp
+       (defun org-agenda-skip-element-if-property-regexp (prop skip-re &optional invert)
+	 "Skip headline if regexp matches with the specified property; property must reference a string-value.
+	INVERT; if t, inverts the match"
+	 (let* ((next-headline (save-excursion (or (outline-next-heading) (point-max))))
+		(match-p 
+		 (let ((case-fold-search nil))
+		   (string-match 
+		    skip-re
+		    (org-element-property prop (org-element-at-point)))))
+		)
+	   (if 
+	       (or 
+		(and invert (not match-p))
+		(and (not invert) match-p))
+	       next-headline
+	     )))
+     #+end_src
+*** Global skip function
+    #+begin_src emacs-lisp
+      (setq org-agenda-skip-function-global 
+	    '(or 
+	      ;; Skip DONE tasks
+	      (org-agenda-skip-entry-if 'todo 'done) 
+	      ;; Skip BLOCKED tasks
+	      (org-agenda-skip-entry-if-blocked)
+	      ;; Skip file PATHs
+	      (org-agenda-skip-invert
+	       'org-agenda-skip-entry-if-file-path "1action")
+	      ))
+      (setq org-agenda-skip-function-global nil)
+    #+end_src
+
+    Standard function for skipping entries
+    - =(org-agenda-skip-entry-if &rest CONDITIONS)= :: Skip if any of the CONDITIONS
+      are true
+      - ='scheduled= :: Entry has a scheduled time.
+      - ='deadline= :: Entry has a deadline.
+      - ='timestamp= :: Entry has any timestamp (including deadline or scheduled)
+      - ='todo= :: Entry todo keyword matches (accepts as argument a list of todo keywords)
+	- ='("TODO" "DONE")= :: Matches any of TODO or DONE.
+	- ='done= :: Matches keyword class 'done
+	- ='todo= :: Matches keyword class 'todo
+*** Custom Agenda Views
+    NB =`= backquote allows evaluation of selected element in the quoted list.
+    =,= is used to indicate items to be evaluated.
+
+    Sparse trees cannot be used in assembled views; they operate on the current
+    buffer only.
+ 
+    ps-print is required for exporting views
+    #+begin_src emacs-lisp
+      (require 'ps-print)
+    #+end_src
+**** Clear org-agenda-custom-commands list
+    Set current custom agenda views to an empty list.
+    #+begin_src emacs-lisp
+    (setq org-agenda-custom-commands '())
+    #+end_src
+**** Provide interface for export filename
+    Standard export location for org-agenda-views
+#+begin_src emacs-lisp
+  (defun org-agenda-filename-to-export-views (filename exts)
+    "Returns a standard location to export agenda views to"
+    (progn 
+      (mapcar
+       (lambda (x)
+	 (expand-file-name
+	  (concat filename "." x)
+	  org-directory
+	  ))
+       exts)
+      )
+    )
+#+end_src
+
+*** Custom search terms
+**** Search term for an item with any persistent tag attached
+    Select todo items with any persistent tag. *p*
+    #+begin_src emacs-lisp
+      ;; Search for any persistent-tags
+      (setq org-agenda-select-persistent-tags
+	    (apply 'concat
+		   (cdr
+		    (apply 'append
+			   (mapcar
+			    (lambda (tag)
+			      (list "|" (car tag))
+			      )
+			    org-tag-persistent-alist))
+		    )))
+    #+end_src
+**** Search term for anything *without* a persistent tag
+    #+begin_src emacs-lisp
+      ;; Search for anything without a persistent tag
+      (setq org-agenda-deselect-persistent-tags
+	    (apply
+	     'concat
+	     (mapcar
+	      (lambda (tag)
+		(concat "-" (car tag))
+		)
+	      org-tag-persistent-alist)
+	     )
+	    )
+    #+end_src
+*** Todo search views
+**** Project views
+***** Project view prefix
+      #+begin_src emacs-lisp
+	(setq org-agenda-project-prefix "p")
+	(add-to-list 'org-agenda-custom-commands
+		     `(,org-agenda-project-prefix . "Project views"))
+      #+end_src
+
+***** Project skip functions
+Skips each item unless it qualifies as a project.
+      #+begin_src emacs-lisp
+	;; N.B. switch "and"/"or" around
+	;; because skip function returns nil when headline is kept 
+	;; and point (of next headline) when it is skipped
+	;; ..AND=OR and OR=AND in this case..
+	(setq org-agenda-project-skip-function 
+	      '(or
+		(org-agenda-skip-invert                  ;; (Do not ... )
+		 'org-agenda-skip-if-children 1            ;; (skip if any children are ... )       
+		 'org-agenda-skip-entry-if 'todo 'any) ;; (... any todo item)
+		;; BUT ... Skip if ..
+		(and 
+		 (> (org-current-level) 1)                              ;; LEVEL > 1 ... AND ...
+		 (org-agenda-skip-entry-if 'nottodo org-gtd-workflow-1) ;; if not todo keyword of a gtd workflow
+		 ))
+	      )
+      #+end_src
+
+A skip function for finding all projects yet to be completed. 
+#+begin_src emacs-lisp
+  (setq org-agenda-project-skip-function-todo
+	'(or
+	  (org-agenda-skip-invert                  ;; (Do not ... )
+	   'org-agenda-skip-if-children 1            ;; (skip if any children are ... )       
+	   'org-agenda-skip-entry-if 'todo 'todo) ;; (... any YET TO BE DONE todo item)
+	  ;; BUT ... Skip if ..
+	  (and 
+	   (> (org-current-level) 1)                              ;; LEVEL > 1 ... AND ...
+	   (org-agenda-skip-entry-if 'nottodo org-gtd-workflow-1) ;; if not todo keyword of a gtd workflow
+	   )
+	  )
+	)
+#+end_src
+
+A skip function for finding projects with a NEXT task
+#+begin_src emacs-lisp
+  (setq org-agenda-project-skip-function-todo-next
+	'(or
+	  (org-agenda-skip-invert                  ;; (Do not ... )
+	   'org-agenda-skip-if-children 1            ;; (skip if any children are ... )       
+	   'org-agenda-skip-entry-if 'todo '("NEXT")) ;; (... any NEXT todo item)
+	  ;; BUT ... Skip if ..
+	  (and 
+	   (> (org-current-level) 1)                              ;; LEVEL > 1 ... AND ...
+	   (org-agenda-skip-entry-if 'nottodo org-gtd-workflow-1) ;; if not todo keyword of a gtd workflow
+	   )
+	  )
+	)
+#+end_src
+
+A skip function for finding all completed projects.
+      #+begin_src emacs-lisp
+	(setq org-agenda-project-skip-function-done
+	      '(or
+		(or 
+		 ;; Check sub-items exists
+		 (org-agenda-skip-invert                ;; Do not
+		  'org-agenda-skip-if-children 1          ;; skip if any children are ...
+		  'org-agenda-skip-entry-if 'todo 'any) ;; ... any todo keyword
+		 ;; OR ...
+		 ;; all sub-items are complete
+		 (org-agenda-skip-if-children nil            ;; skip if any children are ... 
+		  'org-agenda-skip-entry-if 'todo 'todo) ;; ... any ACTIVE todo item
+		 )
+		;; OR ... 
+		(and 
+		 (> (org-current-level) 1)                              ;; LEVEL > 1 ... AND ...
+		 (org-agenda-skip-entry-if 'nottodo org-gtd-workflow-1) ;; if not todo keyword of a gtd workflow
+		 )
+		;; OR ...
+		(and 
+		 (= (org-current-level) 1)               ;; LEVEL = 1 ... AND ....
+		 (org-agenda-skip-entry-if 'todo 'todo)  ;; entry has an ACTIVE todo keyword 
+		 )
+		)
+	      )
+      #+end_src
+
+***** Common Options
+      #+begin_src emacs-lisp
+	(setq org-agenda-project-common-options 
+	      '(
+		;; Skip functions
+		(org-agenda-skip-function-global nil) 
+		;; Match sublevels in tag search
+		(org-tags-match-list-sublevels t)
+		(org-use-tag-inheritance nil)
+		;; Show full breadcrumbs for each project
+		(org-agenda-prefix-format '((tags . "%12:c %b")))
+		;; Other options
+		(org-agenda-tags-todo-honor-ignore-options nil)
+		(org-agenda-dim-blocked-tasks nil)		
+		))
+      #+end_src
+
+***** Active projects view
+      #+begin_src emacs-lisp
+	(add-to-list 'org-agenda-custom-commands
+		     `(,(concat org-agenda-project-prefix "t") 
+		       "Active projects" tags 
+		       "+LEVEL>=1"
+		       ,(append 
+			 org-agenda-project-common-options
+			 '((org-agenda-overriding-header "Active Projects")
+			   (org-agenda-skip-function org-agenda-project-skip-function-todo)
+			   ))))
+      #+end_src  
+      
+***** Next projects view
+      #+begin_src emacs-lisp
+	(add-to-list 'org-agenda-custom-commands
+		     `(,(concat org-agenda-project-prefix "n") 
+		       "Next projects" tags 
+		       "+LEVEL>=1"
+		       ,(append 
+			 org-agenda-project-common-options
+			 '((org-agenda-overriding-header "Next Projects")
+			   (org-agenda-skip-function org-agenda-project-skip-function-todo-next)
+			   ))))
+      #+end_src
+***** Completed projects view
+  #+begin_src emacs-lisp
+    (add-to-list 'org-agenda-custom-commands
+		 `(,(concat org-agenda-project-prefix "x")
+		   "Completed projects" tags 
+		   "+LEVEL>=1"
+		   ,(append
+		     org-agenda-project-common-options
+		     '((org-agenda-overriding-header "Completed Projects")
+		       (org-agenda-skip-function org-agenda-project-skip-function-done)
+		       ))))
+  #+end_src
+
+***** All projects view
+      #+begin_src emacs-lisp
+	(add-to-list 'org-agenda-custom-commands
+		     `(,(concat org-agenda-project-prefix "a") 
+		       "All projects" tags 
+		       "+LEVEL>=1"
+		       ,(append 
+			 org-agenda-project-common-options
+			 '((org-agenda-overriding-header "All Projects")
+			   (org-agenda-skip-function org-agenda-project-skip-function)
+			   ))))
+      #+end_src  
+
+***** View all projects with unassigned GTD workflow
+      #+begin_src emacs-lisp
+	(add-to-list 'org-agenda-custom-commands
+		     `(,(concat org-agenda-project-prefix "u") 
+		       "Projects without GTD keyword" tags
+		       ,(concat "/" (mapconcat (lambda (s) (concat "-" s)) org-gtd-workflow-1 ""))
+		       ,(append 
+			 org-agenda-project-common-options
+			 '((org-agenda-overriding-header "Projects without GTD keyword")
+			   (org-agenda-skip-function org-agenda-project-skip-function)
+			   ))))
+      #+end_src
+
+***** View all projects with specific GTD stages
+      #+begin_src emacs-lisp
+	(let ((count 0))	
+	  (dolist (keyword org-gtd-workflow-1)
+	    (add-to-list 'org-agenda-custom-commands
+			 `(,(concat org-agenda-project-prefix 
+				    (number-to-string (setq count (1+ count))))
+			   "Projects with GTD keyword" todo
+			   ,keyword
+			   ,(append 
+			     org-agenda-project-common-options
+			     '(
+			       (org-agenda-overriding-header "Projects with GTD workflow")
+			       (org-agenda-skip-function org-agenda-project-skip-function)
+			       ))))))
+      #+end_src
+
+*** Tag search views
+**** Tag search prefix
+     #+begin_src emacs-lisp
+       (setq org-agenda-tag-search-prefix "h")
+       (add-to-list 'org-agenda-custom-commands
+		    `(,org-agenda-tag-search-prefix . "Match a saved TAGS/PROP/TODO query"))
+     #+end_src
+
+**** Persistent Tags View Generator
+     This function generates a list of =org-agenda-custom-commands= for each tag in =org-tag-persistent-alist=.
+     #+begin_src emacs-lisp
+       ;; Generator for persistent-tag-agenda-views
+       (defun org-agenda-tag-persistent-agenda-views (&optional settings filename exts)
+	 "Generates a list of custom-commands for org-agenda to display persistent-tags"
+	 (progn
+	   (mapcar
+	    (lambda (tag)
+	      `(,(car tag) . (tags
+			      ,(concat "+" (car tag))
+			      ,settings
+			      ,(org-agenda-filename-to-export-views (concat filename (car tag)) exts)
+			      )))
+	    org-tag-persistent-alist)))
+     #+end_src
+**** Add a view for each persistent tag
+    *Persistent tags*
+    Select todo items with a specific persistent tag. *P*
+    The first letter of each tag is used after the prefix.
+     #+begin_src emacs-lisp
+       ;; Add a custom view for each persistent tag under a prefix
+       (let* (
+	      (persistent-tag-prefix-key (concat org-agenda-tag-search-prefix "p"))
+	      (tag-persistent-agenda-commands
+	       (lambda (&optional settings filename exts)
+		 (mapcar
+		  (lambda (tag_arr)
+		    (let ((tag (car tag_arr)))
+		      (append
+		       `(
+			 ,(concat persistent-tag-prefix-key (substring tag 0 1)) ; PREFIX
+			 ,(format "Headlines with TAGS match: %s" tag)) ; DESCRIPTION
+		       (cdr (assoc tag (org-agenda-tag-persistent-agenda-views settings filename exts)))
+		       )
+		      ))
+		  org-tag-persistent-alist
+		  )))
+	      )
+	 (setq org-agenda-custom-commands
+	       (append 
+		org-agenda-custom-commands
+		`((,persistent-tag-prefix-key . "Todo items with specific persistent tag")) ; Prefix command
+		(funcall tag-persistent-agenda-commands
+			 '((org-agenda-skip-function '(org-agenda-skip-entry-if 'timestamp 'nottodo 'todo))
+			   (ps-print-color-p nil)
+			   (ps-number-of-columns 1)
+			   (ps-left-header (list 'org-agenda-write-buffer-name))
+			   (org-agenda-prefix-format "[ ] %?-12t%?-12s%:c"))
+			 "agenda/tag/"
+			 '("ps" "html"))
+		)))
+     #+end_src
+
+**** Add a view for remaining todo items without persistent tags
+    #+begin_src emacs-lisp
+      ;; Export view for untagged tasks
+      (add-to-list 'org-agenda-custom-commands
+		   `(,(concat org-agenda-tag-search-prefix "o")
+		     "Other tags" .
+		     (tags-todo
+		      ,org-agenda-deselect-persistent-tags
+		      ,(append
+			'((org-agenda-overriding-header "Remaining TODO items:")
+			  (org-agenda-skip-function '(org-agenda-skip-entry-if 'timestamp 'todo 'done)))
+			'((ps-number-of-columns 1)
+			  (ps-print-color-p nil)
+			  (ps-left-header (list 'org-agenda-write-buffer-name))
+			  (org-agenda-prefix-format "[ ] %?-12t%?-12s%:c"))
+			)
+		      ,(org-agenda-filename-to-export-views "agenda/tag/OTHER" '("ps" "html"))
+		      )))
+    #+end_src
+
+**** TODO Create a list of tags with an "@" specifier
+
+*** Sparse search of current buffer
+    The manual way to create a sparse tree of the current buffer is to use the =org-sparse-tree= command. 
+    The default keys are =C-c /= to manually create a sparse tree. 
+    Possible tree types include =occur-tree=, =tags-tree=, or =todo-tree=.
+
+**** Sparse-tree prefix
+     #+begin_src emacs-lisp
+       (setq org-agenda-sparse-prefix "\\") ;; \ for creating a sparse tree in the current Buffer
+       (add-to-list 'org-agenda-custom-commands
+		    `(,org-agenda-sparse-prefix . "Sparse-tree search of current buffer"))
+     #+end_src
+
+**** Tags-tree
+***** Sparse tree of *any persistent tags* 
+     #+begin_src emacs-lisp
+       ;; Tags tree
+       (add-to-list 'org-agenda-custom-commands
+		    `(,(concat org-agenda-sparse-prefix "p") 
+		      "Items with persistent tags"
+		      tags-tree ,org-agenda-select-persistent-tags)
+		    )
+     #+end_src
+***** Sparse tree of anything *without* a persistent tag
+     Select todo items without any persistent tags. *u*
+     #+begin_src emacs-lisp
+       ;; Tags-tree 
+       (add-to-list 'org-agenda-custom-commands 
+		    `(
+		      ,(concat org-agenda-sparse-prefix "u") 
+		      "Items without persistent tags"
+		      tags-tree ,org-agenda-deselect-persistent-tags)
+		    )
+     #+end_src
+***** Sparse tree of any TIMESTAMP-ed items
+      Including actively scheduled or deadline activities.
+      #+begin_src emacs-lisp
+	(add-to-list 'org-agenda-custom-commands
+		     `(,(concat org-agenda-sparse-prefix "t")
+		       "Any timestamp items"
+		       occur-tree org-ts-regexp
+		      ))
+      #+end_src
+
+**** Todo-tree
+
+***** 
+***** All NEXT actions
+      #+begin_src emacs-lisp
+	(add-to-list 'org-agenda-custom-commands
+		     `(,(concat org-agenda-sparse-prefix "n")
+		       "NEXT items"
+		       todo-tree "NEXT"))
+      #+end_src
+
+*** Export views
+The custom agenda views are explicitly for exporting data to other applications. 
+Their actual functionality is covered by default views, or other existing views. 
+**** Export view prefix
+     #+begin_src emacs-lisp
+       (add-to-list 'org-agenda-custom-commands '("E" . "Export-only views"))
+     #+end_src
+
+**** Agenda view (EXPORT)
+ "Agenda view"
+     #+begin_src emacs-lisp
+       (add-to-list 'org-agenda-custom-commands
+		    `("EA" "Agenda View (EXPORT)" .
+		      (agenda ""
+		       (
+			 (org-agenda-skip-function nil)
+			 (org-agenda-span 1)
+			 (ps-print-color-p nil)
+			 (ps-left-header (list 'org-agenda-write-buffer-name))
+			 (ps-number-of-columns 1)
+			 (org-agenda-prefix-format "[ ] %?-12t%?-12s%:c")
+			 )
+		       ,(org-agenda-filename-to-export-views "agenda/agenda" '("ps" "html"))
+		       )))
+     #+end_src
+**** Year Calendar File (EXPORT)
+ "Year Agenda View (ICS)"
+     #+begin_src emacs-lisp
+       (add-to-list 'org-agenda-custom-commands
+		    `("EY" "Year Agenda View (EXPORT)" agenda ""
+		      ((org-agenda-span 366)
+		       (org-agenda-remove-tags t)
+		       (ps-number-of-columns 1)
+		       (org-agenda-prefix-format "[ ] %?-12t%?-12s%:c")
+		       ;; Exclude actual calendar for export
+		       (org-agenda-skip-function '(org-agenda-skip-entry-if-file-path "calendar.org")) 
+		       ) 
+		      ,(org-agenda-filename-to-export-views
+			"agenda/agenda"
+			'("ics"))))
+     #+end_src
+**** Stuck projects (EXPORT)
+ Stuck projects (EXPORT)
+ #+begin_src emacs-lisp
+   (add-to-list 'org-agenda-custom-commands
+		  `("ES" "Stuck projects (EXPORT)" .
+		    (stuck ""
+			   ((ps-number-of-columns 1)
+			    (ps-left-header (list 'org-agenda-write-buffer-name))
+			    (ps-print-color-p nil)
+			    (org-agenda-prefix-format "[ ] %?-12t%?-12s%:c"))
+			   ,(org-agenda-filename-to-export-views 
+			     "agenda/stuck"
+			     '("ps" "html")))))
+ #+end_src
+*** Combination view :exportview:
+**** Full view generator
+    #+begin_src emacs-lisp
+      ;; Define full-view compilation
+      (defun org-agenda-full-view nil
+       "Compilation overview generator for org-agenda-custom-commands."
+	(append
+	 `((agenda ""))
+	   (mapcar 'cdr
+		   (org-agenda-tag-persistent-agenda-views
+		    (append
+		     '(
+		       (org-agenda-skip-function '(org-agenda-skip-entry-if 'timestamp 'nottodo 'todo))
+		       )
+		     )))
+	   `((tags-todo ,org-agenda-deselect-persistent-tags)
+	     (stuck ""))
+	     ))
+    #+end_src
+**** "Active view"
+    #+begin_src emacs-lisp
+      ;; Active view
+      (add-to-list 'org-agenda-custom-commands
+		   `("En" "Active View"
+		     ,(org-agenda-full-view)
+		     ((ps-number-of-columns 1)
+		      (ps-left-header (list 'org-agenda-write-buffer-name))
+		      (ps-print-color-p nil)
+		      (ps-landscape-mode t))
+		     ,(org-agenda-filename-to-export-views "agenda/full" '("ps" "html"))
+		     ))
+    #+end_src
+**** "Summary view"
+    #+begin_src emacs-lisp
+      ;; Summary view
+      (add-to-list 'org-agenda-custom-commands
+		   (let ((summary-side-margin (* (/ 1 2.54) 72))
+			 (summary-border-file (concat user-emacs-directory "/ps/summary_border.ps"))
+			 )
+		     `("Es" "Summary View"
+		       ,(org-agenda-full-view)
+		       ((org-agenda-start-day "+1d")
+			 (org-agenda-span 3)
+			 (org-agenda-remove-tags t)
+			 (org-agenda-block-separator nil)
+			 (ps-print-color-p nil)
+			 (ps-left-header (list 'org-agenda-write-buffer-name))
+			 (ps-paper-type 'collinsorg3colA4)
+			 (ps-number-of-columns 3)
+			 (ps-print-background-image 
+			  '((,summary-border-file ,(- 0 summary-side-margin) ,(- 0 ps-bottom-margin))))
+			 (ps-landscape-mode t)
+			 (ps-left-margin ,summary-side-margin)
+			 (ps-right-margin ,summary-side-margin)
+			 (ps-inter-column (* ,summary-side-margin 2))
+			 (org-agenda-prefix-format "[ ] %?-12t%?-12s%:c")
+			 )
+		       ,(org-agenda-filename-to-export-views "agenda/summary" '("ps" "html"))
+		       )))
+    #+end_src
+**** "Organiser view"
+
+    #+begin_src emacs-lisp
+      ;; Organiser view
+      (add-to-list 'org-agenda-custom-commands
+		   `("Eo" "Organiser View"
+		     ,(org-agenda-full-view)
+		     ((org-agenda-start-day "+1d")
+		      (org-agenda-span 3)
+		      (org-agenda-remove-tags t)
+		      (org-agenda-block-separator nil)
+		      (ps-print-color-p nil)
+		      (ps-left-header (list 'org-agenda-write-buffer-name))
+		      (ps-number-of-columns 1)
+		      (ps-paper-type 'collinsorganiser)
+		      (ps-left-margin (* (/ 1 2.54) 72))
+		      (ps-right-margin (* (/ 1 2.54) 72))
+		      (org-agenda-prefix-format "[ ] %?-12t%?-12s%:c"))
+		     ,(org-agenda-filename-to-export-views "agenda/collins" '("ps"))
+		     ))
+    #+end_src
+
+* Hooks
+Auto-actions linked to opening the agenda buffer.
+** revert any read-only buffers 
+   Workaround to undo any changes to read-only files that might happen as a result of the following hooks.
+   #+begin_src emacs-lisp
+     (defun rjh/org-agenda-revert-read-only-org-buffers ()
+       "Reverts all read-only org-buffers"
+       (mapcar 
+	(lambda (buffer) 
+	  (with-current-buffer buffer 
+	    (when buffer-read-only (revert-buffer t t t))))
+	  (org-buffer-list 'files))
+       )
+   #+end_src
+
+   #+begin_src emacs-lisp
+   (add-hook 'org-agenda-mode-hook 'rjh/org-agenda-revert-read-only-org-buffers)
+   #+end_src
+** org-id
+   Hooks to ensure each org-mode entry has an associated org-id property.
+
+   Create id upon capture.
+   #+begin_src emacs-lisp
+     (add-hook 'org-capture-prepare-finalize-hook 'org-id-get-create)
+   #+end_src
+
+   Create a function to add ids to all headlines in a file, but only if they are an
+   agenda buffer.
+   #+begin_src emacs-lisp
+     (defun rjh/org-add-ids-to-headlines-in-agenda-files ()
+       "Add ID properties to all headlines across agenda buffers which do not already have one."
+       (interactive)
+       (org-map-entries 
+	(lambda () 
+	  (condition-case-unless-debug  buffer-read-only
+	      (org-id-get-create)
+	    (error nil)))
+	nil 'agenda)
+       )
+   #+end_src
+
+   Add hook to agenda-mode.
+   #+begin_src emacs-lisp
+     (add-hook 'org-agenda-mode-hook 'rjh/org-add-ids-to-headlines-in-agenda-files)
+   #+end_src
+** remove schedule from completed tasks
+   Hook to remove schedule timestamps from any completed tasks.
+
+   Function to remove schedule.
+   #+begin_src emacs-lisp
+     (defun rjh/remove-schedule ()
+       (interactive)
+       (condition-case-unless-debug buffer-read-only
+	   (let ((current-prefix-arg '(4)))
+	     (call-interactively 'org-schedule))
+      (error nil)
+	 ))
+   #+end_src
+
+   Function to remove schedule from all agenda entries.
+   #+begin_src emacs-lisp
+     (defun rjh/remove-schedule-from-completed-tasks ()
+       "Remove schedule from completed tasks in agenda buffers"
+       (interactive)
+       (org-map-entries 'rjh/remove-schedule "TODO=\"DONE\"+SCHEDULED<\"<today>\"" 'agenda
+			))
+   #+end_src
+
+   Add hook to agenda-mode.
+   #+begin_src emacs-lisp
+     (add-hook 'org-agenda-mode-hook 'rjh/remove-schedule-from-completed-tasks)
+   #+end_src
+
