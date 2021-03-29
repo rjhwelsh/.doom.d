@@ -1,5 +1,18 @@
 ;;; $DOOMDIR/config.el -*- lexical-binding: t; -*-
 
+;; Improve garbage collection
+;; http://bling.github.io/blog/2016/01/18/why-are-you-changing-gc-cons-threshold/
+(defun my-minibuffer-setup-hook ()
+  (setq gc-cons-threshold most-positive-fixnum))
+
+(defun my-minibuffer-exit-hook ()
+  (setq gc-cons-threshold 800000))
+
+(add-hook 'minibuffer-setup-hook #'my-minibuffer-setup-hook)
+(add-hook 'minibuffer-exit-hook #'my-minibuffer-exit-hook)
+;; See also,
+;; https://github.com/hlissner/doom-emacs/blob/develop/docs/faq.org#avoid-garbage-collection-at-startup
+
 ;; Place your private configuration here! Remember, you do not need to run 'doom
 ;; sync' after modifying this file!
 (load! "private.el")
