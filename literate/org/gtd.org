@@ -86,7 +86,7 @@ These keywords capture the GTD state of "projects".
 	  "REVIEW(4!)"  ;; Gather, and process stuff, review system, update your lists, get clean/clear/current complete
 	;; Everything is organized here, but not prioritized/reviewed
 	;; Review is the final check before committing a project to action
-	  "DO(5!)"      ;; Stuff ready for action
+	  "ACTION(5!)"      ;; Stuff ready for action
 	;; Everything is stream-lined and ready to go for this task
 	  "|"
 	  ))
