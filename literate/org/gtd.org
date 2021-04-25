@@ -694,7 +694,7 @@ A function that skips entries based on the location of the file.
 			   (if 
 			       (or retval
 				   (>= (point) subtree-end))
-			       (return retval))
+			       (cl-return retval))
 			   (if 
 			       (outline-next-heading)
 			       ;; Skip unless exactly 1 level deeper than current headline
@@ -707,7 +707,7 @@ A function that skips entries based on the location of the file.
 				     ))
 				   (setq retval (apply skip-function skip-func-args)))
 			     ;; No more headings.. return
-			     (return retval))
+			     (cl-return retval))
 			   )))))))
 	    (if match-p next-headline)))
       #+end_src
