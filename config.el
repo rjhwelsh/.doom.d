@@ -17,11 +17,6 @@
 ;; sync' after modifying this file!
 (load! "private.el")
 
-;; Some functionality uses this to identify you, e.g. GPG configuration, email
-;; clients, file templates and snippets.
-(setq user-full-name "Roger J. H. Welsh"
-      user-mail-address "rjhwelsh@posteo.net")
-
 ;; Doom exposes five (optional) variables for controlling fonts in Doom. Here
 ;; are the three important ones:
 ;;

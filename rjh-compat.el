@@ -137,8 +137,6 @@
 ;; :email mu4e
 (after! mu4e
 	(org-babel-load-file (concat rjh-old-init-dir    "djcb/mu4e.org"))
-	(org-babel-load-file (concat rjh-old-private-dir "my/email.org"))
-	(org-babel-load-file (concat rjh-old-private-dir "djcb/mu4e.org"))
 	)
 
 ;; :os notify

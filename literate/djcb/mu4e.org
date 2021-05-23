@@ -92,3 +92,143 @@ https://www.djcbsoftware.nl/code/mu/mu4e/Retrieval-and-indexing.html#Speeding-up
       mu4e-index-cleanup nil      ;; don't do a full cleanup check
       mu4e-index-lazy-check t)    ;; don't consider up-to-date dirs
    #+end_src
+** Isync
+ http://isync.sourceforge.net/mbsync.html
+The following option is recommended for use with mbsync.
+#+begin_src emacs-lisp
+  (setq mu4e-change-filenames-when-moving t)
+#+end_src
+** Bookmarks
+   #+begin_src emacs-lisp
+     (require 'mu4e-utils)
+   #+end_src
+*** Functions
+Valid fields and operators obtained from =man mu-query=.
+#+begin_src emacs-lisp
+  (defconst mu4e-query-fields
+    '(
+      :cc "cc:" :c "c:"
+      :bcc "bcc:" :h "h:"
+      :from "from:" :f "f:"
+      :to "to:" :t "t:"
+      :subject "subject:" :s "s:"
+      :body "body:" :b "b:"
+      :maildir "maildir:" :m "m:"
+      :msgid "msgid:" :i "i:"
+      :prio "prio:" :p "p:"
+      :flag "flag:" :g "g:"
+      :date "date:" :d "d:"
+      :size "size:" :z "z:"
+      :embed "embed:" :e "e:"
+      :file "file:" :j "j:"
+      :mime "mime:" :y "y:"
+      :tag "tag:" :x "x:"
+      :list "list:" :v "v:"
+      ;; Special fields
+      :contact "contact:"
+      :recip "recip:"
+      ))
+
+  (defconst mu4e-query-operators
+    '(
+      :and "AND"
+      :or  "OR"
+      :xor "XOR"
+      :not "NOT"
+      ))
+#+end_src
+
+Convert sequence into query.
+#+begin_src emacs-lisp
+  (defun rjh/mu4e-query-from-seq (seq &optional field operator)
+    "Generates a grouped query from matching every item in SEQ to FIELD with OPERATOR"
+    (concat " ("
+	    (mapconcat
+	     (lambda (elem)
+	       (concat
+		(when field
+		  (or
+		   (plist-get mu4e-query-fields field)
+		   (error "Please specify a valid FIELD! See 'man mu-query' for valid fields.")))
+		elem))
+	     seq
+	     (concat " "
+		     (if operator
+			 (or
+			  (plist-get mu4e-query-operators operator)
+			  (error "Please specify a valid OPERATOR! See 'man mu-query' for valid logical operators."))
+		       (plist-get mu4e-query-operators :and))
+		     " "))
+	    ") "))
+#+end_src
+*** Variables
+Anything to me...
+#+begin_src emacs-lisp
+  (defvar rjh/mu4e-query--to-me-seq nil
+    "This variable is a list of regular expressions that together match all of my email addresses. ")
+#+end_src
+
+Flagged messages to keep.
+#+begin_src emacs-lisp
+(defvar rjh/mu4e-query--keep-flags-seq nil
+  "This variable is a list of mail flags to keep???")
+(setq rjh/mu4e-query--keep-flags-seq '("new" "unread" "replied" "trashed" "flagged"))
+#+end_src
+*** Trash/Archive
+#+begin_src emacs-lisp
+;; Messages to trash/archive
+  (mu4e-bookmark-define
+   (concat
+    "date:..1y and not "
+    (rjh/mu4e-query-from-seq rjh/mu4e-query--to-me-seq :contact :or)
+    " and not "
+    (rjh/mu4e-query-from-seq rjh/mu4e-query--keep-flags-seq :flag :or)
+    )
+   "Mark for deletion" ?d)
+#+end_src
+*** CCed or BCCed to me
+    CCed to me.
+    #+begin_src emacs-lisp
+      (mu4e-bookmark-define
+       (concat
+	(rjh/mu4e-query-from-seq rjh/mu4e-query--to-me-seq :cc :or)
+	" or "
+	(rjh/mu4e-query-from-seq rjh/mu4e-query--to-me-seq :bcc :or)
+        " AND not flag:trashed"
+	)
+       "CC/BCC to me"
+       ?2)
+    #+end_src
+*** To me
+    Find any message mailed directly addressed to me.
+    #+begin_src emacs-lisp
+      (mu4e-bookmark-define
+       (concat
+	(rjh/mu4e-query-from-seq rjh/mu4e-query--to-me-seq :to :or)
+	" AND not flag:trashed"
+	)
+       "Addressed to me"
+       ?1)
+    #+end_src
+*** Flagged
+#+begin_src emacs-lisp
+      (mu4e-bookmark-define
+       (concat
+	"flag:flagged AND "
+	"NOT " (rjh/mu4e-query-from-seq rjh/mu4e-query--to-me-seq :recip :or)
+	" AND NOT flag:trashed"
+	)
+       "Not addressed to me, and Flagged messages"
+       ?f)
+#+end_src
+*** To me, CCed or BCCed, unread or flagged
+    #+begin_src emacs-lisp
+      (mu4e-bookmark-define
+       (concat
+	(rjh/mu4e-query-from-seq rjh/mu4e-query--to-me-seq :recip :or)
+	"(flag:flagged or flag:unread)"
+	" and not flag:trashed"
+	)
+       "Addressed to me, and unread or flagged"
+       ?0)
+    #+end_src

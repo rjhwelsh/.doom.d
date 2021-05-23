@@ -55,3 +55,85 @@
 	      (defalias 'fork-ebuild 'ebuild-tools-fork-ebuild)
 	      (defalias 'diff-ebuilds 'ebuild-tools-diff-ebuilds)
 	      )
+
+;; :email mu4e
+;; Bookmark
+(after! mu4e
+  (require 'gentoo-cache)
+  (setq rjh/gentoo-keywords
+	(let* ((plist (gentoo-cache-get-packages :installed))
+	       ;;(plist (nthcdr (- (length plist0) 100) (reverse plist0)))
+	       )
+	  (append
+	   ;; System updates
+	   '("amd64")
+
+	   ;; World packages
+	   (delete-dups
+	    (sort
+	     (seq-filter
+	      (lambda (elt) (> (length elt) 3))
+	      (flatten-list
+	       (mapcar (lambda (A)
+		         (let* ((pc (split-string A "/"))
+			        (p (cadr pc))
+			        (c (car pc)))
+			   A)
+		         )
+		       plist))
+	      )
+	     'string<
+	     )))))
+  ;; Set dynamic-bookmark-define
+  ;; Which becomes static after being called
+  (let ((desc "Gentoo highlights")
+	(key ?g))
+    (mu4e-bookmark-define
+     `(lambda ()
+	(let* ((sep "\\([^a-zA-Z0-9]|$|^\\)")
+	       (query
+	        (concat
+		 " list:/gentoo/ AND "
+		 " not flag:trashed AND "
+		 (concat "/"
+			 (mapconcat 'identity
+				    (mapcar
+				     ;; 'identity
+				     (lambda (keyword)
+				       (concat sep
+					       keyword
+					       sep
+					       ))
+				     rjh/gentoo-keywords)
+				    "|")
+			 "/"
+			 ))
+	        ))
+	  ;; Dyanmically redefine bookmark here
+	  ;; (mu4e-bookmark-define query ,desc ,key)
+	  query))
+     desc
+     key))
+  ;; Search pattern to find all matching words to gentoo-packages in current buffer.
+  (defun rjh/gentoo-keywords-hl ()
+    "Highlight all mentions of a world package name in the current buffer"
+    (interactive)
+    (unhighlight-regexp t)
+    ;; Only highlight if the last query contains the keyword "gentoo"
+    (if (and mu4e~headers-last-query (string-match "gentoo" mu4e~headers-last-query))
+	(dolist (r rjh/gentoo-keywords-re)
+	  (highlight-regexp r 'mu4e-highlight-face))))
+  (add-hook 'mu4e-view-mode-hook 'rjh/gentoo-keywords-hl)
+  ;; A list of regexps
+  (setq
+   rjh/gentoo-keywords-re
+   (mapcar
+    (lambda (p)
+      (rx
+       (seq
+	(not word)
+	(literal p)
+	(not word)
+	)))
+    rjh/gentoo-keywords))
+  )
