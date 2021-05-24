@@ -232,8 +232,3 @@ Flagged messages to keep.
        "Addressed to me, and unread or flagged"
        ?0)
     #+end_src
-** Save sent messages
-https://www.djcbsoftware.nl/code/mu/mu4e/Sending-mail.html#Sending-mail
-#+begin_src emacs-lisp
-(setq mu4e-sent-messages-behaviour 'sent)
-#+end_src
