@@ -244,3 +244,7 @@
 			  ("<C-return>" . jabber-chat-buffer-send))
 	      )
 
+;; :email message
+(setq
+ message-citation-line-function 'message-insert-formatted-citation-line
+ message-citation-line-format "On %a, %d %b %Y at %l:%M%p %Z, %f wrote:\n")
