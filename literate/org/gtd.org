@@ -4,9 +4,6 @@
 #+PROPERTY: header-args :results silent
 #+STARTUP: content
 
-#+begin_src emacs-lisp
-  (rjh/use "org/org:private")
-#+end_src
 
 * Capture
 Change default capture file.
