@@ -513,11 +513,11 @@ See Functions above for a detailed reference to this variable.
 **** Agenda
      #+begin_src emacs-lisp
        (add-to-list 'org-agenda-sorting-strategy
-		    '(agenda 
+		    '(agenda
+		      time-up
 		      user-defined-down
-		      time-up 
-		      deadline-up 
-		      scheduled-up 
+		      deadline-up
+		      scheduled-up
 		      todo-state-down
 		      ))
      #+end_src
