@@ -39,7 +39,10 @@
 ;; change `org-directory'. It must be set before org loads!
 (setq org-directory (concat doom-private-dir "org/"))
 (setq org-agenda-files (concat org-directory "agenda-files"))
-
+;; Reset org-babel-after-executed-hook (fixes redisplay issues when inlineimages are off)
+;; Redisplay images is added in :lang org default config.
+(after! org
+  (setq org-babel-after-execute-hook nil))
 
 ;; This determines the style of line numbers in effect. If set to `nil', line
 ;; numbers are disabled. For relative line numbers, set this to `relative'.

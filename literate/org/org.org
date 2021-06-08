@@ -456,7 +456,7 @@ the following lines anywhere in the buffer:
 =#+STARTUP: noinlineimages=
 
 #+begin_src emacs-lisp
-(setq org-startup-with-inline-images t)
+(setq org-startup-with-inline-images nil)
 #+end_src
 
 ** Faces
