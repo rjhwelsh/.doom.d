@@ -6,30 +6,6 @@
 
 The base configuration for org-mode. 
 
-* Packages
-  The default org should be setup to be installed via the init.el file in your
-  emacs.d directory. This ensures the latest org-mode is used, and not the default
-  provided with your emacs binaries. The following example illustrates the
-  Emacs-lisp commands that bootstrap org-mode, before processing the org-files as
-  specified by your configuration.org.
-
-  #+BEGIN_EXAMPLE
-  (unless (package-installed-p 'org-plus-contrib)
-    (package-install 'org-plus-contrib))
-  (require 'org)
-  (org-babel-load-file (concat user-emacs-directory "/configuration.org"))
-  #+END_EXAMPLE
-
-  The following load-path is used for org-plus-contrib packages.
-  It will automatically expand to the first available org-plus-contrib
-  package in elpa.
-  #+BEGIN_SRC emacs-lisp
-;; Commented out because it conflicts with Tramp in Doom Emacs
-;; (add-to-list
-;;  'load-path
-;;  (car (file-expand-wildcards (concat user-emacs-directory "/elpa/org-plus-contrib*") ))
-;;  )
-  #+END_SRC
 * Setup
   For a minimal =.emacs= for =org-mode=, see [[http://orgmode.org/worg/org-faq.html#minimal-emacs][here]].
   #+BEGIN_SRC emacs-lisp
@@ -65,10 +41,6 @@ The base configuration for org-mode.
     (define-key org-mode-map "\C-cm" 'org-smart-reschedule) 
     #+end_src
 
-** Use private variables
-#+begin_src emacs-lisp
-  (rjh/use "org/org:private")
-#+end_src
 ** Application Defaults
    Default application associations.
    #+BEGIN_SRC emacs-lisp
@@ -375,7 +347,6 @@ Set hook to call =my/post-refile-function=.
   ;; (add-hook 'org-before-refile-insert-hook 'org-log-current-outline-path) ;; Log outline path
   (add-hook 'org-before-refile-insert-hook 'org-set-ppid-to-current)      ;; Set current parent's id
 #+end_src
-
 
 ** Archive
    #+begin_src emacs-lisp
