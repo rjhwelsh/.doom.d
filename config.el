@@ -251,3 +251,6 @@
 (setq
  message-citation-line-function 'message-insert-formatted-citation-line
  message-citation-line-format "On %a, %d %b %Y at %l:%M%p %Z, %f wrote:\n")
+
+;; :ui reb
+(setq reb-re-syntax 'string)
