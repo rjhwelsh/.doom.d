@@ -65,6 +65,9 @@
    :local-repo "/home/hrothgar/import/git/diego_zamboni_org-cv"
    :branch "awesomecv"))
 
+;; Email
+(unpin! org-msg)
+
 ;; Jabber (and related packages)
 (package! jabber)
 (package! srv)
