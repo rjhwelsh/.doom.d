@@ -43,6 +43,9 @@
 ;; Redisplay images is added in :lang org default config.
 (after! org
   (setq org-babel-after-execute-hook nil))
+;; :lang org +roam2
+;; Set graph direction for org-roam (v2)
+(setq org-roam-graph-extra-config '(("rankdir" . "LR")))
 
 ;; This determines the style of line numbers in effect. If set to `nil', line
 ;; numbers are disabled. For relative line numbers, set this to `relative'.
