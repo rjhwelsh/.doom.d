@@ -42,10 +42,13 @@
 ;; Reset org-babel-after-executed-hook (fixes redisplay issues when inlineimages are off)
 ;; Redisplay images is added in :lang org default config.
 (after! org
-  (setq org-babel-after-execute-hook nil))
-;; :lang org +roam2
-;; Set graph direction for org-roam (v2)
-(setq org-roam-graph-extra-config '(("rankdir" . "LR")))
+  (setq org-babel-after-execute-hook nil)
+  ;; :lang org +roam2
+  ;; Set graph direction for org-roam (v2)
+  (setq org-roam-graph-extra-config '(("rankdir" . "LR")))
+  ;; :lang org
+  (setq org-clock-sound (concat doom-private-dir "sounds/86773__juskiddink__gong.wav"))
+  )
 
 ;; This determines the style of line numbers in effect. If set to `nil', line
 ;; numbers are disabled. For relative line numbers, set this to `relative'.
