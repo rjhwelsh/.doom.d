@@ -39,6 +39,12 @@
 ;; change `org-directory'. It must be set before org loads!
 (setq org-directory (concat doom-private-dir "org/"))
 (setq org-agenda-files (concat org-directory "agenda-files"))
+
+;; Diary file is located with org-files
+;; Using iso-style dates Y-M-D
+(setq diary-file (concat org-directory "diary"))
+(setq calendar-date-style 'iso)
+
 ;; Reset org-babel-after-executed-hook (fixes redisplay issues when inlineimages are off)
 ;; Redisplay images is added in :lang org default config.
 (after! org
