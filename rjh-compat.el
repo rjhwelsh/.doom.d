@@ -38,7 +38,10 @@
         (setq org-clock-idle-time 15)
 
 	;; Load literate configuration
-	(mapc (lambda (f) (org-babel-load-file f)) rjh-org-mode-config-list)
+	(mapc (lambda (f) (and
+                           (file-exists-p f)
+                           (org-babel-load-file f))
+                rjh-org-mode-config-list)
 
 	;; Org-edna
 	(use-package! "org-edna"
