@@ -15,7 +15,7 @@
 
 ;; Place your private configuration here! Remember, you do not need to run 'doom
 ;; sync' after modifying this file!
-(load! "private.el")
+(when (f-exists-p "~/.doom.d/private.el") (progn (message "Found private config - loading..") (load! "private.el")))
 
 ;; Doom exposes five (optional) variables for controlling fonts in Doom. Here
 ;; are the three important ones:
