@@ -38,6 +38,9 @@
 ;; If you use `org' and don't want your org files in the default location below,
 ;; change `org-directory'. It must be set before org loads!
 (setq org-directory (concat doom-private-dir "org/"))
+;; Make missing directory
+(unless (f-directory-p org-directory) (make-directory org-directory))
+
 (setq org-agenda-files (concat org-directory "agenda-files"))
 
 ;; Diary file is located with org-files
