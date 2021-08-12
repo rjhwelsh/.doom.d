@@ -62,7 +62,7 @@
   (:host gitlab
    ;; :repo "zzamboni/org-cv"
    :repo "rjhwelsh/org-cv"
-   ;; :local-repo "awesome-cv" ;; (doom sync && doom purge)
+   :local-repo "awesome-cv" ;; (doom sync && doom purge)
    ;; :local-repo "/home/hrothgar/import/git/diego_zamboni_org-cv"
    :branch "awesomecv"))
 
