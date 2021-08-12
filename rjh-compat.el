@@ -40,8 +40,8 @@
 	;; Load literate configuration
 	(mapc (lambda (f) (and
                            (file-exists-p f)
-                           (org-babel-load-file f))
-                rjh-org-mode-config-list))
+                           (org-babel-load-file f)))
+                rjh-org-mode-config-list)
 
 	;; Org-edna
 	(use-package! "org-edna"
