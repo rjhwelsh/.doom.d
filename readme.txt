@@ -36,5 +36,11 @@ Add the three folders from step 2 to your PATH
 N.B. org-roam requires sqlite3. https://sqlite.org/download.html
 (org-roam config is not portable yet, comment it out in init.el!)
 
+Lastly, install the icon fonts Doom uses:
+In emacs itself,
+`M-x all-the-icons-install-fonts`
+On Windows, `all-the-icons-install-fonts` will only download the fonts, you'll
+have to install them by hand afterwards; by right-clicking and installing for each one.
+
 # Additional configuration
 You may need to add some variables to private.el or generate your own private config files for some modules.
