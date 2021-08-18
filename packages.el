@@ -81,3 +81,7 @@
 (package! crux)
 (package! scad-mode)
 (package! pinentry)
+
+;; Emacs sql for windows
+(if (eq system-type 'windows-nt)
+    (package! emacsql-sqlite3))

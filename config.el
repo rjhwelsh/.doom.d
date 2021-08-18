@@ -17,6 +17,16 @@
 ;; sync' after modifying this file!
 (when (f-exists-p "~/.doom.d/private.el") (progn (message "Found private config - loading..") (load! "private.el")))
 
+;; Windows config
+(when (eq system-type 'windows-nt)
+  ;; org-roam2 support on windows
+  ;; See https://earvingad.github.io/posts/org_roam_windows/
+  ;; (You will need to modify the source for org-roam-db.el and delete the org-roam-db.elc file... etc)
+  ;; Set path to graphviz for org-roam
+  (setq org-roam-graph-executable "c:/Program Files/Graphviz/bin/dot.exe")
+  (setq org-roam-directory "~/.doom.d/org/roam")
+  )
+
 ;; Doom exposes five (optional) variables for controlling fonts in Doom. Here
 ;; are the three important ones:
 ;;
