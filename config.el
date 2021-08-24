@@ -25,6 +25,7 @@
   ;; Set path to graphviz for org-roam
   (setq org-roam-graph-executable "c:/Program Files/Graphviz/bin/dot.exe")
   (setq org-roam-directory "~/.doom.d/org/roam")
+  (setq org-id-locations-file "~/.doom.d/org/.orgids")
   )
 
 ;; Doom exposes five (optional) variables for controlling fonts in Doom. Here
