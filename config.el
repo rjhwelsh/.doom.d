@@ -96,10 +96,16 @@
 ;; they are implemented.
 
 (load! "rjh-compat.el")
-(when (string-match "gentoo" (shell-command-to-string "uname -a"))
-  (load! "gentoo.el"))
+
+;; Gentoo configuration depends on akater's gentoo tools for emacs
+;; (Having trouble with ebuilds, so temporarily disable as of 2021.10.23)
+;; (when (string-match "gentoo" (shell-command-to-string "uname -a"))
+;;   (load! "gentoo.el"))
 
 ;; --------------------------------------------------------------------------------
+;; :emacs browser
+(setq browse-url-browser-function 'browse-url-firefox)
+
 ;; :emacs tramp
 (eval-after-load 'tramp '(setenv "SHELL" "/bin/bash"))
 
