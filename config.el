@@ -15,7 +15,8 @@
 
 ;; Place your private configuration here! Remember, you do not need to run 'doom
 ;; sync' after modifying this file!
-(when (f-exists-p "~/.doom.d/private.el") (progn (message "Found private config - loading..") (load! "private.el")))
+(require 'f)
+(when (f-exists? "~/.doom.d/private.el") (progn (message "Found private config - loading..") (load! "private.el")))
 
 ;; Windows config
 (when (eq system-type 'windows-nt)
