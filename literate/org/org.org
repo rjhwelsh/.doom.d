@@ -41,15 +41,16 @@ The base configuration for org-mode.
     (define-key org-mode-map "\C-cm" 'org-smart-reschedule) 
     #+end_src
 
-** Application Defaults
+** +Application Defaults+
    Default application associations.
    #+BEGIN_SRC emacs-lisp
      (setq org-file-apps
-	   '((auto-mode . emacs)
-	     ("\\.x?html?\\'" . "firefox %s")
-	     ("\\.pdf\\'" . "evince \"%s\"")
-	     ("\\.pdf::\\([0-9]+\\)\\'" . "evince \"%s\" -p %1")
-	     ))
+	  '((auto-mode . emacs)
+        (directory . emacs)
+        ("\\.x?html?\\'" . "firefox %s")
+        ("\\.pdf\\'" . "evince \"%s\"")
+        ("\\.pdf::\\([0-9]+\\)\\'" . "evince \"%s\" -p %1")
+        ("\\.mm\\'" . default)))
    #+END_SRC
    Link frame setup. Prevent windows from splitting.
    #+BEGIN_SRC emacs-lisp
