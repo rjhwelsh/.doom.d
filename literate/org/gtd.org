@@ -1351,7 +1351,8 @@ Auto-actions linked to opening the agenda buffer.
 
    Add hook to agenda-mode.
    #+begin_src emacs-lisp
-     (add-hook 'org-agenda-mode-hook 'rjh/org-add-ids-to-headlines-in-agenda-files)
+ ;;  (add-hook 'org-agenda-mode-hook 'rjh/org-add-ids-to-headlines-in-agenda-files)
+;; Disable hook - we should not modify agenda files by calling the agenda-command; this is bad practice.
    #+end_src
 ** remove schedule from completed tasks
    Hook to remove schedule timestamps from any completed tasks.
