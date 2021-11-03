@@ -1,5 +1,9 @@
 ;;; $DOOMDIR/config.el -*- lexical-binding: t; -*-
 
+;; Workarounds
+;; Define and fix non-existent function in < emacs-28
+(defun native-comp-available-p nil)
+
 ;; Improve garbage collection
 ;; http://bling.github.io/blog/2016/01/18/why-are-you-changing-gc-cons-threshold/
 (defun my-minibuffer-setup-hook ()
