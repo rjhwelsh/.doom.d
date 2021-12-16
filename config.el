@@ -221,6 +221,11 @@
 		     ;; ("C-x M-c" . crux-capitalize-region)
 		     ))
 
+;; TODO :lang cfengine
+(after! org
+  (require 'ob-cfengine3)
+  )
+
 ;; :lang plantuml
 (after! plantuml
 	(add-to-list 'auto-mode-alist '("\\.plantuml$" . plantuml-mode))

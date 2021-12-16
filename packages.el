@@ -85,3 +85,9 @@
 ;; Emacs sql for windows
 (if (eq system-type 'windows-nt)
     (package! emacsql-sqlite3))
+
+
+;; Cfengine packages
+(package! ob-cfengine3 :recipe
+  (:host github
+   :repo "nickanderson/ob-cfengine3"))
