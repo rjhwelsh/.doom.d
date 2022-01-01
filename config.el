@@ -15,17 +15,19 @@
 (add-hook 'minibuffer-setup-hook #'my-minibuffer-setup-hook)
 (add-hook 'minibuffer-exit-hook #'my-minibuffer-exit-hook)
 
-;; Function to load config
-(defun my-load-config (f)
-  (let ((fext (file-name-extension f)))
-    (and (file-exists-p f)
-         (cond
-          ((string-equal "el" fext) (load! f))
-          ((string-equal "org" fext) (org-babel-load-file f))
-          ('t
-           (error
-            "Invalid file-type (extension) `%s' for loading... (file:%s)"
-            fext f ))))))
+;; Macro to load config
+(defmacro my-load-config! (f)
+  "User-defined loading macro for extra config."
+  (let ((fext `(file-name-extension ,f)))
+`(progn
+  (if
+      (and (file-exists-p ,f)
+           (cond
+            ((string-equal "el" ,fext) (load! ,f) 't)
+            ((string-equal "org" ,fext) (org-babel-load-file ,f) 't)))
+      (message "Loaded %s" ,f)
+    (error "Error loading %s !" ,f)
+    ))))
 
 ;; See also,
 ;; https://github.com/hlissner/doom-emacs/blob/develop/docs/faq.org#avoid-garbage-collection-at-startup
@@ -37,7 +39,7 @@
 ;;     (f-exists? "~/.doom.d/private.el")
 ;;   (progn (message "Found private config - loading..")
 ;;          (load! "private.el")))
-(my-load-config "private.el")
+(my-load-config! (concat doom-private-dir "private.el"))
 
 ;; Windows config
 (when (eq system-type 'windows-nt)
@@ -309,5 +311,5 @@
 ;; These are ordered in terms of redundancy
 ;; macros.el are last, because they are not critical for system functionality.
 (load! "org.el")
-(my-load-config (concat org-directory "config.org"))
+(my-load-config! (concat org-directory "config.org"))
 (load! "macros.el")
