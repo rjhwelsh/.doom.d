@@ -14,6 +14,8 @@
 
 (add-hook 'minibuffer-setup-hook #'my-minibuffer-setup-hook)
 (add-hook 'minibuffer-exit-hook #'my-minibuffer-exit-hook)
+;; See also,
+;; https://github.com/hlissner/doom-emacs/blob/develop/docs/faq.org#avoid-garbage-collection-at-startup
 
 ;; Macro to load config
 (defmacro my-load-config! (f)
@@ -29,17 +31,16 @@
     (error "Error loading %s !" ,f)
     ))))
 
-;; See also,
-;; https://github.com/hlissner/doom-emacs/blob/develop/docs/faq.org#avoid-garbage-collection-at-startup
-
 ;; Place your private configuration here! Remember, you do not need to run 'doom
 ;; sync' after modifying this file!
-
-;; (when
-;;     (f-exists? "~/.doom.d/private.el")
-;;   (progn (message "Found private config - loading..")
-;;          (load! "private.el")))
 (my-load-config! (concat doom-private-dir "private.el"))
+
+;; If you use `org' and don't want your org files in the default location below,
+;; change `org-directory'. It must be set before org loads!
+;; Other variables also depend on the org-directory.
+;; See `org.el' for org-mode configuration
+(setq org-directory (concat doom-private-dir "org/"))
+(make-directory org-directory 'parents)
 
 ;; Windows config
 (when (eq system-type 'windows-nt)
@@ -70,15 +71,6 @@
 ;; `load-theme' function. This is the default:
 (setq doom-theme 'doom-one)
 (setq emojify-display-style 'unicode)
-
-;; If you use `org' and don't want your org files in the default location below,
-;; change `org-directory'. It must be set before org loads!
-;; Other variables also depend on the org-directory.
-;; See `org.el' for org-mode configuration
-(setq org-directory (concat doom-private-dir "org/"))
-;; Make missing directory
-(require 'f)
-(unless (f-directory-p org-directory) (make-directory org-directory))
 
 ;; Diary file is located with org-files
 ;; Using iso-style dates Y-M-D
