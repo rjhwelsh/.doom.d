@@ -5,15 +5,10 @@
 
 ;; Currently used config
 (defvar rjh-old-init-dir (concat doom-private-dir "literate/"))
-(defvar rjh-old-private-dir (concat doom-private-dir "private/"))
 
 ;; Config for org-mode
 (defvar rjh-org-mode-config-list
-  (append (mapcar
-	   (lambda (n) (concat rjh-old-private-dir n ".org"))
-	   '(
-	     "org/org"
-	     ))
+  (append
 	  (mapcar
 	   (lambda (n) (concat rjh-old-init-dir n ".org"))
 	   '(

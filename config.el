@@ -14,13 +14,30 @@
 
 (add-hook 'minibuffer-setup-hook #'my-minibuffer-setup-hook)
 (add-hook 'minibuffer-exit-hook #'my-minibuffer-exit-hook)
+
+;; Function to load config
+(defun my-load-config (f)
+  (let ((fext (file-name-extension f)))
+    (and (file-exists-p f)
+         (cond
+          ((string-equal "el" fext) (load! f))
+          ((string-equal "org" fext) (org-babel-load-file f))
+          ('t
+           (error
+            "Invalid file-type (extension) `%s' for loading... (file:%s)"
+            fext f ))))))
+
 ;; See also,
 ;; https://github.com/hlissner/doom-emacs/blob/develop/docs/faq.org#avoid-garbage-collection-at-startup
 
 ;; Place your private configuration here! Remember, you do not need to run 'doom
 ;; sync' after modifying this file!
-(require 'f)
-(when (f-exists? "~/.doom.d/private.el") (progn (message "Found private config - loading..") (load! "private.el")))
+
+;; (when
+;;     (f-exists? "~/.doom.d/private.el")
+;;   (progn (message "Found private config - loading..")
+;;          (load! "private.el")))
+(my-load-config "private.el")
 
 ;; Windows config
 (when (eq system-type 'windows-nt)
@@ -58,6 +75,7 @@
 ;; See `org.el' for org-mode configuration
 (setq org-directory (concat doom-private-dir "org/"))
 ;; Make missing directory
+(require 'f)
 (unless (f-directory-p org-directory) (make-directory org-directory))
 
 ;; Diary file is located with org-files
@@ -291,4 +309,5 @@
 ;; These are ordered in terms of redundancy
 ;; macros.el are last, because they are not critical for system functionality.
 (load! "org.el")
+(my-load-config (concat org-directory "config.org"))
 (load! "macros.el")
