@@ -122,3 +122,44 @@
 ;; https://orgmode.org/worg/exporters/koma-letter-export.html
 (eval-after-load 'ox '(require 'ox-koma-letter))
 ;; --------------------------------------------------------------------------------
+
+;; From literate/org/org.org
+
+(after! org
+  ;; Base config
+  (require 'org-agenda)
+     (setq org-file-apps
+	  '((auto-mode . emacs)
+        (directory . emacs)
+        ("\\.x?html?\\'" . "firefox %s")
+        ("\\.pdf\\'" . "evince \"%s\"")
+        ("\\.pdf::\\([0-9]+\\)\\'" . "evince \"%s\" -p %1")
+        ("\\.mm\\'" . default)))
+
+  ;; Keybindings
+        (define-key global-map "\C-cnl" 'org-store-link)
+      (define-key global-map "\C-cna" 'org-agenda)
+      (define-key global-map "\C-cnn" 'org-capture)
+      (define-key global-map (kbd "C-c C-x C-j") 'org-clock-goto)
+      (define-key global-map (kbd "C-c C-x C-o") 'org-clock-out)
+      (define-key global-map (kbd "C-c C-x C-i") 'org-clock-in)
+
+  ;; Hooks
+  ;; align tags before saving org-mode file
+  (add-hook 'org-mode-hook (lambda () (add-hook 'before-save-hook (lambda () (org-align-tags t)) nil 'local)))
+
+
+  ;; Extension modules
+    (eval-after-load 'org
+      '(org-load-modules-maybe t))
+    ;;
+     (require 'org-checklist) ;; Resets check-boxes with =RESET_CHECK_BOXES= set to =t=
+
+     ;; super memo based repetition scheduling
+     (require 'org-learn)
+     (define-key org-mode-map "\C-cm" 'org-smart-reschedule)
+
+
+
+  
+  )

@@ -2,6 +2,24 @@
 
 ;; These are user-defined macros/functions to enhance the functionality of emacs
 
+;; org
+(after! org
+     (defun org-toggle-reset-check-boxes-property ()
+	(interactive)
+	(let* ((prop "RESET_CHECK_BOXES")
+	      (value (org-entry-get nil prop)))
+	  (if value
+	      (org-delete-property prop)
+	      (org-entry-put nil "RESET_CHECK_BOXES" "t"))))
+     (define-key org-mode-map (kbd "C-c C-x r") 'org-toggle-reset-check-boxes-property)
+
+           (define-key org-mode-map "\C-cne" 'rjh/org-tags-expire)
+      (define-key org-mode-map "\C-c\M-r" 'org-id-refile-to-prev)
+      (define-key org-agenda-mode-map "\C-ce" 'rjh/org-tags-expire-agenda)
+
+  )
+
+
 ;; org-roam
 (after! org-roam
 

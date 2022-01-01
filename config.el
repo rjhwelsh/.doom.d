@@ -302,6 +302,10 @@
 ;; Enhancements
 ;; These are ordered in terms of redundancy
 ;; macros.el are last, because they are not critical for system functionality.
+;; first
 (load! "org.el")
-(my-load-config! (concat org-directory "config.org"))
+
+;; last
+(load! "workarounds.el")
+(my-load-config! (concat org-directory "config.org")) ;; fragile user org config
 (load! "macros.el")
