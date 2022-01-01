@@ -54,33 +54,16 @@
 
 ;; If you use `org' and don't want your org files in the default location below,
 ;; change `org-directory'. It must be set before org loads!
+;; Other variables also depend on the org-directory.
+;; See `org.el' for org-mode configuration
 (setq org-directory (concat doom-private-dir "org/"))
 ;; Make missing directory
 (unless (f-directory-p org-directory) (make-directory org-directory))
-
-(setq org-agenda-files (concat org-directory "agenda-files"))
 
 ;; Diary file is located with org-files
 ;; Using iso-style dates Y-M-D
 (setq diary-file (concat org-directory "diary"))
 (setq calendar-date-style 'iso)
-
-;; Reset org-babel-after-executed-hook (fixes redisplay issues when inlineimages are off)
-;; Redisplay images is added in :lang org default config.
-(after! org
-  (setq org-babel-after-execute-hook nil)
-  ;; :lang org
-  (setq org-clock-sound (concat doom-private-dir "sounds/86773__juskiddink__gong.wav"))
-  ;; export options
-  (setq org-export-with-broken-links t)
-  (setq org-export-use-babel nil)
-  )
-
-(after! org-roam
-  ;; :lang org +roam2
-  ;; Set graph direction for org-roam (v2)
-  (setq org-roam-graph-extra-config '(("rankdir" . "LR")))
-  )
 
 ;; This determines the style of line numbers in effect. If set to `nil', line
 ;; numbers are disabled. For relative line numbers, set this to `relative'.
@@ -305,4 +288,7 @@
 (setq reb-re-syntax 'string)
 
 ;; Enhancements
+;; These are ordered in terms of redundancy
+;; macros.el are last, because they are not critical for system functionality.
+(load! "org.el")
 (load! "macros.el")
