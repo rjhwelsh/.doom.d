@@ -71,6 +71,9 @@
   (setq org-babel-after-execute-hook nil)
   ;; :lang org
   (setq org-clock-sound (concat doom-private-dir "sounds/86773__juskiddink__gong.wav"))
+  ;; export options
+  (setq org-export-with-broken-links t)
+  (setq org-export-use-babel nil)
   )
 
 (after! org-roam
