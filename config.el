@@ -300,3 +300,6 @@
 
 ;; :ui reb
 (setq reb-re-syntax 'string)
+
+;; Enhancements
+(load! "macros.el")
