@@ -136,16 +136,22 @@
         ("\\.pdf::\\([0-9]+\\)\\'" . "evince \"%s\" -p %1")
         ("\\.mm\\'" . default)))
 
+  ;; Behaviour
+     (setq org-log-done 'time)   ;; Record when a task moves to the DONE state
+     (setq org-log-refile 'time) ;; Record when an item is refiled.
+
   ;; Keybindings
-        (define-key global-map "\C-cnl" 'org-store-link)
-      (define-key global-map "\C-cna" 'org-agenda)
-      (define-key global-map "\C-cnn" 'org-capture)
-      (define-key global-map (kbd "C-c C-x C-j") 'org-clock-goto)
-      (define-key global-map (kbd "C-c C-x C-o") 'org-clock-out)
-      (define-key global-map (kbd "C-c C-x C-i") 'org-clock-in)
+     (define-key global-map "\C-cnl" 'org-store-link)
+     (define-key global-map "\C-cna" 'org-agenda)
+     (define-key global-map "\C-cnn" 'org-capture)
+     (define-key global-map (kbd "C-c C-x C-j") 'org-clock-goto)
+     (define-key global-map (kbd "C-c C-x C-o") 'org-clock-out)
+     (define-key global-map (kbd "C-c C-x C-i") 'org-clock-in)
 
   ;; Hooks
+  (add-hook 'org-mode-hook 'flyspell-mode)
   ;; align tags before saving org-mode file
+  ;; TODO Cleanup hook
   (add-hook 'org-mode-hook (lambda () (add-hook 'before-save-hook (lambda () (org-align-tags t)) nil 'local)))
 
 
@@ -159,7 +165,58 @@
      (require 'org-learn)
      (define-key org-mode-map "\C-cm" 'org-smart-reschedule)
 
+     ;; quick templates
+     (require 'org-tempo)
+     (setq org-structure-template-alist
+           (append
+            org-structure-template-alist
+            '(
+              ("el" . "src emacs-lisp")
+              ("py" . "src python")
+              ("sh" . "src sh"))
+            ))
+     ;; clocking
+     (require 'org-clock)
+     (setq org-clock-persist 'history)
+     (org-clock-persistence-insinuate)
 
+     (require 'org-capture)
+     (require 'org-archive)
 
-  
+     (require 'org-id)
+     (setq org-id-link-to-org-use-id 'use-existing) ;; use ids if available, prevent proliferation of ids if not
+
+     ;;(require 'org-babel)
+     (org-babel-do-load-languages
+      'org-babel-load-languages
+      '((C . t)  ;; This includes support for C++
+        (emacs-lisp . t)
+        (ruby . t)
+        (dot . t)
+        (gnuplot . t)
+        (plantuml . t)
+        (R . t)
+        ))
+     (setq org-confirm-babel-evaluate nil)
+     (add-to-list 'org-src-lang-modes '("dot" . graphviz-dot))
+     (setq org-src-fontify-natively t)
+     (setq org-src-tab-acts-natively t)
+     (add-hook 'org-babel-after-execute-hook
+               (lambda ()
+                 (when org-inline-image-overlays
+                   (org-redisplay-inline-images))))
+
+     ;; export settings
+     (require 'ox-html)
+     (setq org-html-checkbox-type 'html) ;; render checkboxes in html
+     (setq org-export-with-smart-quotes t)
+
+     ;; icalendar export settings
+     (require 'ox-icalendar)
+     (require 'icalendar)
+     (setq org-icalendar-use-scheduled '(event-if-todo)
+           org-icalendar-use-deadline  '(event-if-todo todo-due)
+           org-icalendar-alarm-time 40
+           icalendar-export-sexp-enumerate-all t
+           )
   )

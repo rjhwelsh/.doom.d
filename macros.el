@@ -4,18 +4,63 @@
 
 ;; org
 (after! org
-     (defun org-toggle-reset-check-boxes-property ()
-	(interactive)
-	(let* ((prop "RESET_CHECK_BOXES")
-	      (value (org-entry-get nil prop)))
-	  (if value
-	      (org-delete-property prop)
-	      (org-entry-put nil "RESET_CHECK_BOXES" "t"))))
-     (define-key org-mode-map (kbd "C-c C-x r") 'org-toggle-reset-check-boxes-property)
 
-           (define-key org-mode-map "\C-cne" 'rjh/org-tags-expire)
-      (define-key org-mode-map "\C-c\M-r" 'org-id-refile-to-prev)
-      (define-key org-agenda-mode-map "\C-ce" 'rjh/org-tags-expire-agenda)
+  (defun org-toggle-reset-check-boxes-property ()
+    (interactive)
+    (let* ((prop "RESET_CHECK_BOXES")
+           (value (org-entry-get nil prop)))
+      (if value
+          (org-delete-property prop)
+        (org-entry-put nil "RESET_CHECK_BOXES" "t"))))
+  (define-key org-mode-map (kbd "C-c C-x r") 'org-toggle-reset-check-boxes-property)
+
+  (define-key org-mode-map "\C-cne" 'rjh/org-tags-expire)
+  (define-key org-agenda-mode-map "\C-ce" 'rjh/org-tags-expire-agenda)
+
+  ;; Function to return org-buffer-files
+  (defun ixp-org-buffer-files ()
+    "Return list of opened orgmode buffer files"
+    ;; org-refile functions must remove nil values
+    (delete nil
+            (mapcar (function buffer-file-name)
+                    (org-buffer-list 'files))))
+
+  ;; Create a hook variable to execute before the =org-refile= command using advice
+  (define-advice org-refile (:before (orig-fn &rest args))
+    "Add `org-before-refile-hook' to `org-refile'."
+    (run-hooks 'org-before-refile-insert-hook))
+  (defvar org-before-refile-insert-hook nil
+    "Hook run before `org-refile' has started to execute.")
+
+  ;; Functions to refile to parent headline
+  (require 'org-id)
+  (defun org-id-refile-to-prev ()
+    "Uses `org-id-find' to find the parent of entry-at-point,
+then refiles the entry back to it's parent."
+    (interactive)
+    (let* ((PPID (org-entry-get nil "PPID")) ;; Get property value at point
+           (loc (if (string-empty-p PPID)
+                    (progn (message "PPID is empty!") nil)
+                  (org-id-find PPID)          ;; Find location of org-id
+                  )))
+      ;; The refile location, *RFLOC* should be of the form ='(nil filename nil position)=
+      (when loc
+        (org-refile nil nil
+                    (list nil (car loc) nil (cdr loc))))))  ;; RFLOC
+  (define-key org-mode-map "\C-c\M-r" 'org-id-refile-to-prev)
+  (defun org-set-ppid-to-current ()
+    "Sets :PPID: to the current parent's `org-id'"
+    (let (ppid (org-id-get))
+      (when ppid
+        (org-entry-put                   ;; Set property value
+         nil
+         "PPID"		             ;; PROPERTY
+         (save-excursion	             ;; VALUE
+           (ignore-errors           ;; Catch error whilst..
+             (outline-up-heading 1 t)  ;; ... Going up a headline
+             (org-id-get))                ;; Obtain org-id
+           )))))
+  (add-hook 'org-before-refile-insert-hook 'org-set-ppid-to-current)  ;; Set current parent's id (before refile)
 
   )
 

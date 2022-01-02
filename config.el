@@ -101,6 +101,19 @@
 
 (load! "rjh-compat.el")
 
+;; Add postscript paper types
+
+;; Collins Organiser Refill size.
+(add-to-list 'ps-page-dimensions-database
+             '(collinsorganiser 270 486 "CollinsOrganiserRefill"))
+;; Collins Organiser 4-column on A4.
+(add-to-list 'ps-page-dimensions-database
+             `(collinsorg4colA4 486 ,(nth 2 (assoc 'a4 ps-page-dimensions-database)) "CollinsOrganiser4ColumnsOnA4"))
+;; Collins Organiser 3-column on A4.
+(add-to-list 'ps-page-dimensions-database
+             `(collinsorg3colA4 486 ,(* 3 270) "CollinsOrganiser3ColumnsOnA4"))
+
+
 ;; Gentoo configuration depends on akater's gentoo tools for emacs
 ;; (Having trouble with ebuilds, so temporarily disable as of 2021.10.23)
 ;; (when (string-match "gentoo" (shell-command-to-string "uname -a"))
@@ -304,8 +317,10 @@
 ;; macros.el are last, because they are not critical for system functionality.
 ;; first
 (load! "org.el")
+(load! "faces.el")
 
 ;; last
 (load! "workarounds.el")
+
 (my-load-config! (concat org-directory "config.org")) ;; fragile user org config
 (load! "macros.el")

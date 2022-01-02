@@ -2,7 +2,7 @@
 
 ;; A place to keep workarounds, which can be messy looking
 
-(after org!
+(after! org
        ;; fix <> parenthesis matching
              ;; Taken from: https://emacs.stackexchange.com/questions/50216/org-mode-code-block-parentheses-mismatch
       (defun org-mode-<>-syntax-fix (start end)
@@ -27,5 +27,11 @@
 	(syntax-propertize (point-max)))
 
       (add-hook 'org-mode-hook #'org-setup-<>-syntax-fix)
-
+      (require 'elec-pair)
+      (add-hook
+       'org-mode-hook
+       (lambda ()
+         (setq-local electric-pair-inhibit-predicate
+                     `(lambda (c)
+                        (if (char-equal c ?<) t (,electric-pair-inhibit-predicate c))))))
        )
