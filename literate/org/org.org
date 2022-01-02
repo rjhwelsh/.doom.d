@@ -1,8 +1,0 @@
-#+TITLE: Org-mode base configuration
-#+AUTHOR: Roger J. H. Welsh
-#+EMAIL: rjhwelsh@gmail.com
-#+PROPERTY: header-args    :results silent
-#+STARTUP: content
-
-The base configuration for org-mode. 
-

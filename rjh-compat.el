@@ -12,7 +12,6 @@
 	  (mapcar
 	   (lambda (n) (concat rjh-old-init-dir n ".org"))
 	   '(
-	     "org/org"
 	     "rjh/solar"
 	     "org/gtd"
 	     ))))
