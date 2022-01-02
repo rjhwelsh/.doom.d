@@ -1,7 +1,0 @@
-#+TITLE: Getting Things Done with Org-mode
-#+AUTHOR: Roger J. H. Welsh
-#+EMAIL: rjhwelsh@posteo.net
-#+PROPERTY: header-args :results silent
-#+STARTUP: content
-#+ARCHIVE: ~/domestic/static/org-local/gtd/4trash.org::datetree/* %s
-
