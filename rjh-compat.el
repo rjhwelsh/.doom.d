@@ -13,7 +13,6 @@
 	   (lambda (n) (concat rjh-old-init-dir n ".org"))
 	   '(
 	     "rjh/solar"
-	     "org/gtd"
 	     ))))
 
 ;; The following steps are required outside of Emacs

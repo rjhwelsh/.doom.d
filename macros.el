@@ -62,35 +62,53 @@ then refiles the entry back to it's parent."
            )))))
   (add-hook 'org-before-refile-insert-hook 'org-set-ppid-to-current)  ;; Set current parent's id (before refile)
 
+  (load! (expand-file-name "ext/org-tags-expire.el" doom-private-dir))
+  (load! (expand-file-name "ext/org-score.el" doom-private-dir))
+  )
+
+;; org-agenda
+(after! org-agenda
+
+  (defun org-agenda-filename-to-export-views (filename exts)
+    "Returns a standard location to export agenda views to"
+    (progn
+      (mapcar
+       (lambda (x)
+         (expand-file-name
+          (concat filename "." x)
+          org-directory))
+       exts)))
+
+  (load! (expand-file-name "ext/org-agenda-skip.el" doom-private-dir))
   )
 
 
 ;; org-roam
 (after! org-roam
 
-(defun org-roam-capture-subtree (&optional n)
-  "Cuts the current subtree, and pastes it into an org-roam buffer.
-   The title of the subtree is used as the title of the org-roam buffer.
-   Using a prefix argument (other than 1) will open a capture buffer before saving."
-  (interactive "p")
-  (let* (
-         (immediate (= n 1))
-         (subtree-title (save-excursion
+  (defun org-roam-capture-subtree (&optional n)
+    "Cuts the current subtree, and pastes it into an org-roam buffer.
+The title of the subtree is used as the title of the org-roam buffer.
+Using a prefix argument (other than 1) will open a capture buffer before saving."
+    (interactive "p")
+    (let* (
+           (immediate (= n 1))
+           (subtree-title (save-excursion
+                            (org-back-to-heading)
+                            (org-element-property :title (org-element-at-point))))
+           (subtree-id (save-excursion
+                         (org-back-to-heading)
+                         (org-element-property :ID (org-element-at-point))))
+           (subtree-beg (save-excursion
                           (org-back-to-heading)
-                          (org-element-property :title (org-element-at-point))))
-         (subtree-id (save-excursion
-                       (org-back-to-heading)
-                       (org-element-property :ID (org-element-at-point))))
-         (subtree-beg (save-excursion
-                        (org-back-to-heading)
-                        (point)))
-         ;; Create node based on subtree properties
-         (node (org-roam-node-create :title subtree-title :id subtree-id ))
-         (templates '(
-                      ("s" "subtree" plain "%?%(org-paste-subtree 0)" :target
-                       (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
-                       :unnarrowed t)))
-         ;; Remove side-effects from org-capture
+                          (point)))
+           ;; Create node based on subtree properties
+           (node (org-roam-node-create :title subtree-title :id subtree-id ))
+           (templates '(
+                        ("s" "subtree" plain "%?%(org-paste-subtree 0)" :target
+                         (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
+                         :unnarrowed t)))
+           ;; Remove side-effects from org-capture
          (org-capture-prepare-finalize-hook nil)
         )
 

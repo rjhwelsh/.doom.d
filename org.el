@@ -10,9 +10,6 @@
   (setq org-babel-after-execute-hook nil)
   ;; :lang org
   (setq org-clock-sound (concat doom-private-dir "sounds/86773__juskiddink__gong.wav"))
-  ;; export options
-  (setq org-export-with-broken-links t)
-  (setq org-export-use-babel nil)
   )
 
 (after! org-roam
@@ -128,13 +125,15 @@
 (after! org
   ;; Base config
   (require 'org-agenda)
-     (setq org-file-apps
-	  '((auto-mode . emacs)
-        (directory . emacs)
-        ("\\.x?html?\\'" . "firefox %s")
-        ("\\.pdf\\'" . "evince \"%s\"")
-        ("\\.pdf::\\([0-9]+\\)\\'" . "evince \"%s\" -p %1")
-        ("\\.mm\\'" . default)))
+  (require 'ps-print)
+
+  (setq org-file-apps
+        '((auto-mode . emacs)
+          (directory . emacs)
+          ("\\.x?html?\\'" . "firefox %s")
+          ("\\.pdf\\'" . "evince \"%s\"")
+          ("\\.pdf::\\([0-9]+\\)\\'" . "evince \"%s\" -p %1")
+          ("\\.mm\\'" . default)))
 
   ;; Behaviour
      (setq org-log-done 'time)   ;; Record when a task moves to the DONE state
@@ -149,10 +148,12 @@
      (define-key global-map (kbd "C-c C-x C-i") 'org-clock-in)
 
   ;; Hooks
-  (add-hook 'org-mode-hook 'flyspell-mode)
+     (add-hook 'org-mode-hook 'flyspell-mode)
+     (add-hook 'org-capture-prepare-finalize-hook 'org-id-get-create)
+
   ;; align tags before saving org-mode file
   ;; TODO Cleanup hook
-  (add-hook 'org-mode-hook (lambda () (add-hook 'before-save-hook (lambda () (org-align-tags t)) nil 'local)))
+     (add-hook 'org-mode-hook (lambda () (add-hook 'before-save-hook (lambda () (org-align-tags t)) nil 'local)))
 
 
   ;; Extension modules

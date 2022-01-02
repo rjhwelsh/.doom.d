@@ -31,6 +31,7 @@
     (error "Error loading %s !" ,f)
     ))))
 
+
 ;; Place your private configuration here! Remember, you do not need to run 'doom
 ;; sync' after modifying this file!
 (my-load-config! (concat doom-private-dir "private.el"))
@@ -322,5 +323,5 @@
 ;; last
 (load! "workarounds.el")
 
-(my-load-config! (concat org-directory "config.org")) ;; fragile user org config
 (load! "macros.el")
+(my-load-config! (concat org-directory "config.org")) ;; fragile user org config
