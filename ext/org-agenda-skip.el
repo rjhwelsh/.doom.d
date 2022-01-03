@@ -1,5 +1,8 @@
 ;;; ext/org-agenda-skip.el -*- lexical-binding: nil; -*-
 
+;;; Skip functions that return nil will NOT be skipped
+;;; Otherwise the function must return the position from where the search should continue
+
 ;;; TODO Add a function to skip based on subtree depth
 
 ;; Org-agenda skip functions
@@ -106,6 +109,7 @@ Matches are compared with `org-read-date-analyzer'"
 
 ;; Subtree functions
 ;; These sub-tree skipping functions are derived from =org-agenda-list-stuck-projects=.
+;; TODO Test this function
 (defun org-agenda-skip-subtree-if-regexp (skip-re)
   "Skip subtree if regexp matches anywhere inside subtree, not including current headline."
   ;; Skip entry if `org-agenda-skip-regexp' matches anywhere
