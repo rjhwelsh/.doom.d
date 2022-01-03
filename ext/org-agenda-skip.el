@@ -41,6 +41,32 @@
       (format "%04d-%02d-%02d" (nth 5 final) (nth 4 final) (nth 3 final)))
   ))
 
+(defun org-agenda-skip-if-timestamp (&optional time default-time with-time)
+  "Skip headline if it contains a timestamp that matches SKIPTIME.
+Matches are compared with `org-read-date-analyzer'"
+  (let* (
+         (skipts (org-agenda-skip-make-timestamp time default-time with-time))
+         (next-headline (save-excursion (or (outline-next-heading) (point-max))))
+
+         (tss ;; TODO 2022-01-03 list of all timestamps from headline - not sure how to do this yet
+          (save-excursion
+            (org-back-to-heading)
+            (org-element--get-time-properties)
+            ))
+
+         (matchp
+          (apply #'and ;; Apply and will return nil if any time matches exactly
+                 (mapcar
+                  (lambda (ts)
+                    (let*
+                        (ta ;; TODO Convert ts for conversion (time to seconds)
+                         tb ;; TODO Convert skipts for conversion (time to seconds)
+                         )
+                      (cond ((if ta (and tb (< ta tb)) tb) -1)
+                            ((if tb (and ta (< tb ta)) ta) +1))))
+                  tss))))
+    (if match-p next-headline)))
+
 ;; Regexp skip functions
 (defun org-agenda-skip-if-regexp (skip-re)
   "Skip headline if regexp matches the headline"
