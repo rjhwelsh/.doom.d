@@ -79,6 +79,13 @@ then refiles the entry back to it's parent."
           org-directory))
        exts)))
 
+  (defun org-agenda-randomize-entries ()
+    "Assigns (or reassigns) a random number to every agenda item."
+    (org-map-entries
+     '(org-set-property "RANDOM" (number-to-string (random most-positive-fixnum)))
+     nil
+     'agenda))
+
   (load! (expand-file-name "ext/org-agenda-skip.el" doom-private-dir))
   )
 
