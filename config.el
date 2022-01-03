@@ -102,8 +102,6 @@
 ;; You can also try 'gd' (or 'C-c c d') to jump to their definition and see how
 ;; they are implemented.
 
-(load! "rjh-compat.el")
-
 ;; Add postscript paper types
 
 ;; Collins Organiser Refill size.
@@ -326,4 +324,5 @@
 (load! "workarounds.el")
 
 (load! "macros.el")
-(my-load-config! (concat org-directory "config.org")) ;; fragile user org config
+(after! org (my-load-config! (concat org-directory "config.org"))) ;; fragile user org config
+(load! "rjh-compat.el") ;; suspect this is pre-loading org-mode (which is bad karma)
