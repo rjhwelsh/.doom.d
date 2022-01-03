@@ -12,6 +12,7 @@
         (org-enforce-todo-checkbox-dependencies nil))
     (if (org-entry-blocked-p) next-headline)))
 
+;; TODO This could do with a better name
 (defun org-agenda-skip-entry-maxdepth (maxlevel)
   "Skip entry if level depth is greater than maxlevel."
   (let ((next-headline
