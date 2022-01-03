@@ -20,6 +20,27 @@
            (or (outline-next-heading) (point-max)))))
     (if (> (org-current-level) maxlevel) next-headline)))
 
+;; Timestamp skip functions
+(defun org-agenda-skip-make-timestamp (&optional time default-time with-time)
+  (let* (
+       (time (or time ""))
+       (org-time-was-given (or with-time (string-match-p (regexp-quote ":") "")))
+       (ct (org-current-time))
+       (org-def (or org-overriding-default-time default-time ct))
+       (org-defdecode (decode-time org-def))
+
+       (final (org-read-date-analyze time org-def org-defdecode))
+       (final (apply #'encode-time final))
+       (final (decode-time final))
+       )
+
+    (if (and (boundp 'org-time-was-given) org-time-was-given)
+        (format "%04d-%02d-%02d %02d:%02d"
+                (nth 5 final) (nth 4 final) (nth 3 final)
+                (nth 2 final) (nth 1 final))
+      (format "%04d-%02d-%02d" (nth 5 final) (nth 4 final) (nth 3 final)))
+  ))
+
 ;; Regexp skip functions
 (defun org-agenda-skip-if-regexp (skip-re)
   "Skip headline if regexp matches the headline"
