@@ -324,5 +324,6 @@
 (load! "workarounds.el")
 
 (load! "macros.el")
-(after! org (my-load-config! (concat org-directory "config.org"))) ;; fragile user org config
-(load! "rjh-compat.el") ;; suspect this is pre-loading org-mode (which is bad karma)
+(my-load-config! (concat org-directory "config.el")) ;; fragile user org config
+;; (my-load-config! (concat org-directory "config.org")) ;; reload-config with org-babel-load-file
+(after! org (load! "rjh-compat.el")) ;; suspect this is pre-loading org-mode (which is bad karma)

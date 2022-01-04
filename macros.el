@@ -62,9 +62,27 @@ then refiles the entry back to it's parent."
            )))))
   (add-hook 'org-before-refile-insert-hook 'org-set-ppid-to-current)  ;; Set current parent's id (before refile)
 
+  ;; Function to count the number of entry matches
+  (defun org-count-entries (&optional pom match scope)
+  "Counts the items at POM, based on MATCH and within SCOPE
+   Default behaviour is to count all the todo items at point within the subtree.
+   (This includes the subtree itself)"
+  (interactive)
+  (save-excursion
+    (and pom (goto-char pom))
+    (let ((counter 0))
+      (org-map-entries
+       (lambda ()
+         (setq counter (1+ counter)))
+       (or match "/!")
+       (or scope 'tree))
+      counter)))
+
   (load! (expand-file-name "ext/org-tags-expire.el" doom-private-dir))
-  (load! (expand-file-name "ext/org-score.el" doom-private-dir))
   )
+
+
+(load! (expand-file-name "ext/org-score.el" doom-private-dir))
 
 ;; org-agenda
 (after! org-agenda
