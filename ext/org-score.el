@@ -5,7 +5,7 @@
 ;; TODO  Obtain a numerical representation of the priority value
 ;; TODO  org-agenda-score-entry-at-point function, see org-agenda sorting function below
 
-
+(require 'org)
 (defvar org-score-vector nil
   "A list of functions and polynomial score coefficients used to calculate the score of an org entry at-point.
 
