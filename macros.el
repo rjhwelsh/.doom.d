@@ -78,6 +78,22 @@ then refiles the entry back to it's parent."
        (or scope 'tree))
       counter)))
 
+  ;; Function to extract keywords from org-todo-keywords
+  (defun org-todo-keywords-extract (&optional n  todo-keywords)
+    "Extract todo keywords from the `org-todo-keywords' variable.
+   Optionally, specify sequence to extract.
+   Optionally, specify todo-keywords variable."
+    (let ((todo-keywords
+           (mapcar
+            (lambda (sequence)
+              (let* ((keywords (cdr sequence)))
+                (org-remove-keyword-keys keywords)
+                ))
+            (or todo-keywords org-todo-keywords))))
+      (if n
+          (nth n todo-keywords)
+        todo-keywords)))
+
   ;; Function to reassign todo keywords according to association list
 (defun org-reassign-todo-keywords (swap-alist &optional match scope)
   "Re-assign todo keywords according to SWAP-ALIST,
