@@ -44,7 +44,8 @@
       (format "%04d-%02d-%02d" (nth 5 final) (nth 4 final) (nth 3 final)))
   ))
 
-(defun org-agenda-skip-if-timestamp (&optional time default-time with-time)
+;; TODO Create a function to compare and skip timestamps
+(defun org-agenda-skip-if-ts (&optional time default-time with-time)
   "Skip headline if it contains a timestamp that matches SKIPTIME.
 Matches are compared with `org-read-date-analyzer'"
   (let* (
