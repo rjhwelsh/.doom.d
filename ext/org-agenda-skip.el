@@ -24,6 +24,11 @@
     (if (> (org-current-level) maxlevel) next-headline)))
 
 ;; Timestamp skip functions
+(defun org-agenda-skip-entry-if-repeat ()
+  "Skip entry if it repeats; i.e. contains a timestamp with a repeater."
+  (if (org-get-repeat) (or (outline-next-heading) (point-max)))
+  )
+
 (defun org-agenda-skip-make-timestamp (&optional time default-time with-time)
   (let* (
        (time (or time ""))
