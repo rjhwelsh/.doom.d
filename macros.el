@@ -78,6 +78,26 @@ then refiles the entry back to it's parent."
        (or scope 'tree))
       counter)))
 
+  ;; Function to reassign todo keywords according to association list
+(defun org-reassign-todo-keywords (swap-alist &optional match scope)
+  "Re-assign todo keywords according to SWAP-ALIST,
+Organized as an association list '((oldkey1 newkey1) (oldkey2 newkey2) ...).
+Scope and match are passed to `org-map-entries'"
+  (org-map-entries
+   (lambda ()
+     (let*
+         (
+          (oldkey (org-get-todo-state))
+          (oldkey (when oldkey (substring-no-properties oldkey)))
+          (newkey (cadr (assoc oldkey swap-alist)))
+          (newkey (and
+                   oldkey
+                   (not (string-equal oldkey newkey))
+                   newkey)))
+       (when newkey (org-todo newkey))))
+   (or match "/!")
+   (or scope)))
+
   (load! (expand-file-name "ext/org-tags-expire.el" doom-private-dir))
   )
 
