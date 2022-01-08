@@ -34,4 +34,7 @@
          (setq-local electric-pair-inhibit-predicate
                      `(lambda (c)
                         (if (char-equal c ?<) t (,electric-pair-inhibit-predicate c))))))
+
+      ;; Workaround for capture templates not working after calling org-agenda
+      (setq org-agenda-finalize-hook nil)
        )
