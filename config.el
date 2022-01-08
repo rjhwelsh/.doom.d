@@ -27,8 +27,8 @@
   (if
       (and (file-exists-p ,f)
            (cond
-            ((string-equal "el" ,fext) (load! ,f) 't)
-            ((string-equal "org" ,fext) (org-babel-load-file ,f) 't)))
+            ((string-equal "el" ,fext) (load! ,f) t)
+            ((string-equal "org" ,fext) (require 'org) (org-babel-load-file ,f) t)))
       (message "Loaded %s" ,f)
     (error "Error loading %s !" ,f)
     ))))
@@ -324,6 +324,7 @@
 (load! "workarounds.el")
 
 (load! "macros.el")
-(my-load-config! (concat org-directory "config.el")) ;; fragile user org config
+(after! org (my-load-config! (concat org-directory "config.el"))) ;; fragile user org config
 ;; (my-load-config! (concat org-directory "config.org")) ;; reload-config with org-babel-load-file
-(after! org (load! "rjh-compat.el")) ;; suspect this is pre-loading org-mode (which is bad karma)
+(require 'org)
+(load! "rjh-compat.el") ;; suspect this is pre-loading org-mode (which is bad karma)
