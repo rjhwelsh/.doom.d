@@ -153,41 +153,69 @@ Scope and match are passed to `org-map-entries'"
 The title of the subtree is used as the title of the org-roam buffer.
 Using a prefix argument (other than 1) will open a capture buffer before saving."
     (interactive "p")
-    (let* (
-           (immediate (= n 1))
-           (subtree-title (save-excursion
-                            (org-back-to-heading)
-                            (org-element-property :title (org-element-at-point))))
-           (subtree-id (save-excursion
-                         (org-back-to-heading)
-                         (org-element-property :ID (org-element-at-point))))
-           (subtree-beg (save-excursion
-                          (org-back-to-heading)
-                          (point)))
-           ;; Create node based on subtree properties
-           (node (org-roam-node-create :title subtree-title :id subtree-id ))
-           (templates '(
-                        ("s" "subtree" plain "%?%(org-paste-subtree 0)" :target
-                         (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
-                         :unnarrowed t)))
-           ;; Remove side-effects from org-capture
-         (org-capture-prepare-finalize-hook nil)
-        )
+    (unwind-protect
+        (let* (
+               (immediate (= n 1))
+               (subtree-title (save-excursion
+                                (org-back-to-heading)
+                                (org-element-property :title (org-element-at-point))))
+               (subtree-id (save-excursion
+                             (org-back-to-heading)
+                             (org-element-property :ID (org-element-at-point))))
+               (subtree-beg (save-excursion
+                              (org-back-to-heading)
+                              (point)))
+               ;; Create node based on subtree properties
+               (node (org-roam-node-create :title subtree-title :id subtree-id ))
+               (templates '(
+                            ("s" "subtree" plain "%?%(org-paste-subtree 0)" :target
+                             (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
+                             :unnarrowed t)))
+               ;; Remove side-effects from org-capture
+               (org-capture-prepare-finalize-hook nil)
+               org-roam-capture-props
+               )
 
-      (org-delete-property "ID")  ;; Delete ID from subtree
-      (org-copy-subtree 1 nil 't) ;; copy subtree to kill ring
+          (org-delete-property "ID")  ;; Delete ID from subtree
+          (org-copy-subtree 1 nil 't) ;; copy subtree to kill ring
 
-      ;; interupt kill-ring to prevent text accumulation
-      (delete-region (save-excursion (org-back-to-heading) (point)) (org-end-of-subtree t t))
+          ;; interupt kill-ring to prevent text accumulation
+          (delete-region
+           (save-excursion
+             (org-back-to-heading)
+             (when (org-roam-file-p) (org-beginning-of-line)) ;; pos link
+             (point))
+           (progn
+             (org-end-of-subtree t t)
+             (when (org-roam-file-p) (backward-char)) ;; pos link
+             (point)))
+
+          ;; Synchronize org-roam database to prevent db violations
+          (when (org-roam-file-p)
+            (save-buffer)
+            (org-roam-db-sync)
+            ;; Insert a link if inside an org-roam buffer
+            (setq org-roam-capture-props
+                  (list
+                   :insert-at (point-marker)
+                   :link-description subtree-title
+                  :finalize 'insert-link))
+        (insert (org-link-make-string
+                 (concat "id:" subtree-id)
+                 subtree-title)))
 
       (org-roam-capture-
        :node node
        :templates templates
-       :props `(:immediate-finish ,immediate :finalize nil))
-      ))
+       :props (append
+               (list
+                :immediate-finish immediate)
+               org-roam-capture-props))
+
+      ;; Re-position for next heading
+      (when (org-roam-file-p) (outline-next-heading)))))
 
 (map! (:map org-mode-map)
       :localleader
       :prefix ("m" . "org-roam")
-      "s" #'org-roam-capture-subtree)
-)
+      "s" #'org-roam-capture-subtree))
