@@ -78,6 +78,7 @@
 
 ;; Diary file is located with org-files
 ;; Using iso-style dates Y-M-D
+(require 'calendar)
 (setq diary-file (concat org-directory "diary"))
 (setq calendar-date-style 'iso)
 
