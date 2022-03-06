@@ -10,7 +10,7 @@
   (setq gc-cons-threshold most-positive-fixnum))
 
 (defun my-minibuffer-exit-hook ()
-  (setq gc-cons-threshold 800000))
+  (setq gc-cons-threshold 400000))
 
 (add-hook 'minibuffer-setup-hook #'my-minibuffer-setup-hook)
 (add-hook 'minibuffer-exit-hook #'my-minibuffer-exit-hook)
@@ -36,6 +36,7 @@
 
 ;; Place your private configuration here! Remember, you do not need to run 'doom
 ;; sync' after modifying this file!
+
 (my-load-config! (concat doom-private-dir "private.el"))
 
 ;; If you use `org' and don't want your org files in the default location below,
@@ -86,7 +87,7 @@
   (setq org-babel-after-execute-hook nil)
   ;; :lang org
   (setq org-clock-sound (concat doom-private-dir "sounds/86773__juskiddink__gong.wav"))
-  (setq org-indirect-buffer-display 'new-frame)
+  (setq org-indirect-buffer-display 'dedicated-frame)
   )
 
 (after! org-roam
