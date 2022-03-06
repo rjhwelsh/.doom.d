@@ -45,7 +45,7 @@
        ;;tabs              ; a tab bar for Emacs
        ;;treemacs          ; a project drawer, like neotree but cooler
        ;;unicode           ; extended unicode support for various languages
-       vc-gutter         ; vcs diff in the fringe
+       ;;vc-gutter         ; vcs diff in the fringe
        vi-tilde-fringe   ; fringe tildes to mark beyond EOB
        ;;window-select     ; visually switch windows
        workspaces        ; tab emulation, persistence & separate workspaces
@@ -79,7 +79,7 @@
        ;;vterm             ; the best terminal emulation in Emacs
 
        :checkers
-       syntax              ; tasing you for every semicolon you forget
+       ;; syntax              ; tasing you for every semicolon you forget
        ;;(spell +flyspell) ; tasing you for misspelling mispelling
        ;;grammar           ; tasing grammar mistake every you make
 
@@ -170,12 +170,12 @@
 
        :email
        ;; (mu4e +gmail)
-       mu4e
+       ;; mu4e
        ;;notmuch
        ;;(wanderlust +gmail)
 
        :app
-       matrix
+       ;; matrix
        ;;calendar
        ;;emms
        ;;everywhere        ; *leave* Emacs!? You must be joking
