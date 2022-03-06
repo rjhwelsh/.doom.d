@@ -127,13 +127,19 @@
   (require 'org-agenda)
   (require 'ps-print)
 
-  (setq org-file-apps
-        '((auto-mode . emacs)
-          (directory . emacs)
-          ("\\.x?html?\\'" . "firefox %s")
-          ("\\.pdf\\'" . "evince \"%s\"")
-          ("\\.pdf::\\([0-9]+\\)\\'" . "evince \"%s\" -p %1")
-          ("\\.mm\\'" . default)))
+  (cond
+   ((eq system-type 'windows-nt)
+        (setq org-file-apps
+          '((auto-mode . emacs)
+            (directory . system))))
+   (t
+    (setq org-file-apps
+          '((auto-mode . emacs)
+            (directory . emacs)
+            ("\\.x?html?\\'" . "firefox %s")
+            ("\\.pdf\\'" . "evince \"%s\"")
+            ("\\.pdf::\\([0-9]+\\)\\'" . "evince \"%s\" -p %1")
+            ("\\.mm\\'" . default)))))
 
   ;; Behaviour
      (setq org-log-done 'time)   ;; Record when a task moves to the DONE state
