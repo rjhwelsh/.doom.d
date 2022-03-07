@@ -30,11 +30,13 @@ Add the three folders from step 2 to your PATH
     3. Select “Path”, click “edit”, prepend C:\path\to\the\emacs\bin: to it and click OK.
     4. Select “Path”, click “edit”, prepend C:\path\to\the\ripgrep: to it and click OK.
     5. Select “Path”, click “edit”, prepend C:\path\to\the\fd: to it and click OK.
-    6. Click Ok.
+    6. Select “Path”, click “edit”, append C:\msys64\usr\bin: to it and click OK.
+    7. Click Ok.
 
-
-N.B. org-roam requires sqlite3. https://sqlite.org/download.html
-(org-roam config is not portable yet, comment it out in init.el!)
+For org-roam on Windows. Install msys2 for the compiler; note this is incompatible with git binaries in path. Ensure the msys2 binaries take precedence in PATH.
+Download and use the installer in the official MSYS2 website [https://msys2.org], and use (pacman -S gcc) to install gcc.
+See https://www.orgroam.com/manual.html#Installation for more details.
+N.B. org-roam requires sqlite3 and a compiler. https://sqlite.org/download.html
 
 Lastly, install the icon fonts Doom uses:
 In emacs itself,
