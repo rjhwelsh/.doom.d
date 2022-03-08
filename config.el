@@ -122,7 +122,13 @@
 
 ;; --------------------------------------------------------------------------------
 ;; :emacs browser
-(setq browse-url-browser-function 'browse-url-firefox)
+(cond
+ ((eq system-type 'windows-nt)
+  (setq browse-url-browser-function 'browser-url-default-windows-browser)
+  (setq browse-url-mailto-function nil))
+ (t
+  (setq browser-url-browser-function 'browser-url-default-browser))
+ )
 
 ;; :emacs tramp
 (eval-after-load 'tramp '(setenv "SHELL" "/bin/bash"))
