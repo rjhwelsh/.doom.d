@@ -1,6 +1,9 @@
 ;;; workarounds.el -*- lexical-binding: t; -*-
 
-;; A place to keep workarounds, which can be messy looking
+;; A place to keep workarounds, which can be messy in the main config
+
+;; Define and fix non-existent function in < emacs-28
+(defun native-comp-available-p nil)
 
 (after! org
        ;; fix <> parenthesis matching
