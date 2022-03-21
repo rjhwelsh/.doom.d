@@ -4,7 +4,9 @@
 
 ;; Keyboard tweaks on chromebook
 (when (and (eq system-type 'gnu/linux) (equal system-name "lethe"))
-  (start-process "xmodmap" nil "xmodmap" "-e" "keycode 133 = Home"))
+  ;; Warning! Synchronous process
+  (call-process "/usr/bin/xmodmap" nil "*proc*" nil "-v" "-e" "keycode 133 = Home")
+  )
 
 ;; Define and fix non-existent function in < emacs-28
 (defun native-comp-available-p nil)
