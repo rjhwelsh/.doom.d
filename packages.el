@@ -52,6 +52,12 @@
 ;; Org packages
 (package! org-edna)
 
+;; Org-kanban
+(package! org-kanban)
+;;  :recipe
+;;  (:host github
+;;   :repo "gizmomogwai/org-kanban"))
+
 ;; Org-cv packages
 (package! ox-json)
 (package! ox-hugo)
