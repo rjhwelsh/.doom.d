@@ -131,7 +131,9 @@
    ((eq system-type 'windows-nt)
         (setq org-file-apps
           '((auto-mode . emacs)
-            (directory . system))))
+            (directory . system)
+            ("\\.pdf\\'" . system)
+            )))
    (t
     (setq org-file-apps
           '((auto-mode . emacs)
