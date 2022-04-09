@@ -333,6 +333,16 @@
  message-citation-line-function 'message-insert-formatted-citation-line
  message-citation-line-format "On %a, %d %b %Y at %l:%M%p %Z, %f wrote:\n")
 
+;; :email gnus
+(after! gnus
+  (defun my-gnus-group-list-subscribed-groups ()
+    "List all subsrcibed groups with or without un-read messages"
+    (interactive)
+    (gnus-group-list-all-groups 5))
+  (define-key gnus-group-mode-map
+    ;; List all the subscribed groups even they contain zero un-read messages
+    (kbd "A o") 'my-gnus-group-list-subscribed-groups))
+
 ;; :ui reb
 (setq reb-re-syntax 'string)
 
