@@ -15,24 +15,28 @@
 ;; See also,
 ;; https://github.com/hlissner/doom-emacs/blob/develop/docs/faq.org#avoid-garbage-collection-at-startup
 
+;; Function to check if file is encrypted with GITCRYPT
+(defun vc-file-gitcrypt-p (f)
+  (equal
+   (with-temp-buffer
+     (insert-file-contents f nil 1 9)
+     (buffer-substring-no-properties (point-min) (point-max))) "GITCRYPT"))
+
 ;; Macro to load config
 (defmacro my-load-config! (f)
   "User-defined loading macro for extra config."
   (let ((fext `(file-name-extension ,f)))
-`(progn
-  (if
-      (and (file-exists-p ,f)
-           (cond
-            ((string-equal "el" ,fext) (load! ,f) t)
-            ((string-equal "org" ,fext) (require 'org) (org-babel-load-file ,f) t)))
-      (message "Loaded %s" ,f)
-    (error "Error loading %s !" ,f)
-    ))))
-
+    `(cond
+      ((vc-file-gitcrypt-p ,f) (warn "Skipped %s, encrypted with git-crypt!" ,f))
+      ((and (file-exists-p ,f)
+            (cond
+             ((string-equal "el" ,fext) (load! ,f) t)
+             ((string-equal "org" ,fext) (require 'org) (org-babel-load-file ,f) t)))
+       (message "Loaded %s" ,f))
+       (t (error "Error loading %s !" ,f)))))
 
 ;; Place your private configuration here! Remember, you do not need to run 'doom
 ;; sync' after modifying this file!
-
 (my-load-config! (concat doom-private-dir "private.el"))
 
 ;; If you use `org' and don't want your org files in the default location below,
