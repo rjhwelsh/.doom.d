@@ -130,9 +130,8 @@
   (cond
    ((eq system-type 'windows-nt)
         (setq org-file-apps
-          '((auto-mode . emacs)
+          '((auto-mode . system)
             (directory . system)
-            ("\\.pdf\\'" . system)
             )))
    (t
     (setq org-file-apps
