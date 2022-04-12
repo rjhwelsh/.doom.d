@@ -4,7 +4,10 @@
 
 ;; org
 (after! org
-
+  ;; Load outlook extensions
+  (load! (expand-file-name "ext/org-outlook.el" doom-private-dir))
+  (require 'org-outlook)
+  
   (defun org-toggle-reset-check-boxes-property ()
     (interactive)
     (let* ((prop "RESET_CHECK_BOXES")
