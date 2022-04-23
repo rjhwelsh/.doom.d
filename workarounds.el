@@ -12,6 +12,8 @@
 (defun native-comp-available-p nil)
 
 (after! org
+  ;; Disable cache -- too many warnings!
+  (setq org-element-use-cache nil)
        ;; fix <> parenthesis matching
              ;; Taken from: https://emacs.stackexchange.com/questions/50216/org-mode-code-block-parentheses-mismatch
       (defun org-mode-<>-syntax-fix (start end)
