@@ -129,10 +129,14 @@
 
   (cond
    ((eq system-type 'windows-nt)
+    (let
+        ((org-file-apps-pdf-browser "\"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe\""))
         (setq org-file-apps
-          '((auto-mode . system)
-            (directory . system)
-            )))
+              `(
+                ("\\.pdf::\\([0-9]+\\)?\\'" . ,(format "%s file:///%%s#page=%%1" org-file-apps-pdf-browser))
+                (auto-mode . system)
+                (directory . system)
+            ))))
    (t
     (setq org-file-apps
           '((auto-mode . emacs)
