@@ -3,10 +3,12 @@
 ;; A place to keep workarounds, which can be messy in the main config
 
 ;; Keyboard tweaks on chromebook
-(when (and (eq system-type 'gnu/linux) (equal system-name "lethe"))
-  ;; Warning! Synchronous process
-  (call-process "/usr/bin/xmodmap" nil "*proc*" nil "-v" "-e" "keycode 133 = Home")
-  )
+(defun my-keyboard-tweaks ()
+  (when (and (eq system-type 'gnu/linux) (equal system-name "lethe"))
+    ;; Warning! Synchronous process
+    (call-process "/usr/bin/xmodmap" nil "*proc*" nil "-v" "-e" "keycode 133 = Home")
+    ))
+(my-keyboard-tweaks)
 
 ;; Define and fix non-existent function in < emacs-28
 (defun native-comp-available-p nil)
