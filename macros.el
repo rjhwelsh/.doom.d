@@ -219,3 +219,23 @@ Using a prefix argument (other than 1) will open a capture buffer before saving.
       :localleader
       :prefix ("m" . "org-roam")
       "s" #'org-roam-capture-subtree))
+
+;; --------------------------------------------------------------------------------
+(defun insert-date-md5sum-hex ()
+  "Inserts an md5sum of the current date into buffer, using the shell."
+  (interactive)
+  (let* ((cmd
+         (format "date|md5sum"))
+         (proc
+          (with-temp-buffer
+            (list :exit-status (call-process-shell-command cmd nil t) ;; call shell command
+                  :output (car (split-string (buffer-string))) ;; limit to first word of output
+            )))
+         )
+    (if (eq 0 (plist-get proc :exit-status))
+        (insert (plist-get proc :output))
+      (error "Shell process %s exited with status %d!"
+             cmd
+             (plist-get proc :exit-status)))
+    ))
+;; --------------------------------------------------------------------------------
