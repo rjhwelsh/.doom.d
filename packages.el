@@ -97,3 +97,11 @@
 (package! ob-cfengine3 :recipe
   (:host github
    :repo "nickanderson/ob-cfengine3"))
+
+;; TODO Add notify package
+;; :os notify
+;; https://www.emacswiki.org/emacs/notify.el
+;; (package! notify
+;;   :defer t
+;;   :init
+;;   (add-to-list 'load-path (concat doom-private-dir "emacswiki/")))

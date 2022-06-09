@@ -27,16 +27,6 @@
 ;; Email
 ;;
 ;; :email mu4e
-(after! mu4e
-	(org-babel-load-file (concat rjh-old-init-dir    "djcb/mu4e.org"))
-	)
-
-;; :os notify
-;; https://www.emacswiki.org/emacs/notify.el
-(use-package! notify
-	      :defer t
-	      :init
-	      (add-to-list 'load-path (concat doom-private-dir "emacswiki/")))
 
 
 ;; --------------------------------------------------------------------------------
