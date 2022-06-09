@@ -338,14 +338,14 @@
     ;; Always decrypt messages w/o prompting
   (setq mm-decrypt-option 'always)
 
-  (defun my-gnus-group-list-subscribed-groups ()
+  (defun gnus-group-list-all-subscribed-groups ()
     "List all subsrcibed groups with or without un-read messages"
     (interactive)
     (gnus-group-list-all-groups 5))
 
   (define-key gnus-group-mode-map
     ;; List all the subscribed groups even they contain zero un-read messages
-    (kbd "A o") 'my-gnus-group-list-subscribed-groups))
+    (kbd "A o") 'gnus-group-list-all-subscribed-groups))
 
 ;; :ui reb
 (setq reb-re-syntax 'string)
