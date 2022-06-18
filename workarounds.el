@@ -4,6 +4,8 @@
 
 ;; Keyboard tweaks on chromebook
 (defun my-keyboard-tweaks ()
+  "Tweak keyboard using system-utils to optimize for Emacs, (hard-coded) based on the system host-name"
+  (interactive)
   (when (and (eq system-type 'gnu/linux) (equal system-name "lethe"))
     ;; Warning! Synchronous process
     (call-process "/usr/bin/xmodmap" nil "*proc*" nil "-v" "-e" "keycode 133 = Home")
