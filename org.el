@@ -136,7 +136,20 @@
                 ("\\.pdf::\\([0-9]+\\)?\\'" . ,(format "%s file:///%%s#page=%%1" org-file-apps-pdf-browser))
                 (auto-mode . system)
                 (directory . system)
-            ))))
+                ))
+        ;; Revizto5 is a issue tracking software
+        (org-link-set-parameters
+         "revizto5"
+         :follow (lambda (issue_uri)
+                   (let (
+                         (org-link-revizto5-path "C:\\Program Files\\Vizerra LLC\\Revizto5\\Service\\ReviztoServiceGUI.exe")
+                         ;; TODO implement windows to posix path conversion (string-match)
+                         ;; - C: => /c/
+                         ;; \\ => /
+                         ;;   => \ (spaces)
+                         (org-link-revizto5 "/c/Program\\ Files/Vizerra\\ LLC/Revizto5/Service/ReviztoServiceGUI.exe"))
+                     (start-process-shell-command "revizto5" "*revizto5-issue*" org-link-revizto5 "-browser_protocol" (format "revizto5:%s" issue_uri)))))
+        ))
    (t
     (setq org-file-apps
           '((auto-mode . emacs)
