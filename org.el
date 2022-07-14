@@ -30,6 +30,9 @@
         ;; TODO Add to literate configuration
         (setq org-clock-idle-time 15)
 
+        ;; Set time format for durations
+        (setq org-duration-format 'h:mm)
+
 	;; Org-edna
 	(use-package! "org-edna"
 		      :init
