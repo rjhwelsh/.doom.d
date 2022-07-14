@@ -86,6 +86,33 @@
   (require 'ox-awesomecv)
   )
 
+;; Org-mode table functions 220714
+(after! org
+  (defun org-table-get-buffer-remote-range-eval (name-or-id form &optional buffer )
+    "Get a field value or a list of values in a range from table at ID, in BUFFER.
+     This function acts as a wrapper to `org-table-get-remote-range' to obtain table values from an alternate buffer.
+     The result will be stripped of font decoration and fed to `read', so be careful out there."
+    (when buffer
+      (with-current-buffer buffer
+        (read
+         (substring-no-properties
+          (org-table-get-remote-range
+           name-or-id
+           ; If form does not start with a reference, interpret as a var
+           (if (string-match "^[a-zA-Z]" form)
+               (format "$%s" form)
+               form)
+           ))))))
+
+  (defun org-table-get-buffer-constant (name &optional buffer)
+    "Obtain the value of an `org-mode' constant with NAME in BUFFER.
+See `org-table-formula-constants-local'."
+    (when buffer
+      (with-current-buffer buffer
+        (alist-get name
+                   org-table-formula-constants-local "?" nil 'equal))))
+  )
+
 ;; Still TODO
 ;; https://www.aidanscannell.com/post/org-mode-resume/
 ;; https://github.com/aidanscannell/my-org-resume
