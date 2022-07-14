@@ -7,7 +7,7 @@
   ;; Load outlook extensions
   (load! (expand-file-name "ext/org-outlook.el" doom-private-dir))
   (require 'org-outlook)
-  
+
   (defun org-toggle-reset-check-boxes-property ()
     (interactive)
     (let* ((prop "RESET_CHECK_BOXES")
@@ -117,12 +117,9 @@ Scope and match are passed to `org-map-entries'"
    (or match "/!")
    (or scope)))
 
-  (load! (expand-file-name "ext/org-tags-expire.el" doom-private-dir))
-  )
-
-
+(load! (expand-file-name "ext/org-tags-expire.el" doom-private-dir))
 (load! (expand-file-name "ext/org-score.el" doom-private-dir))
-
+)
 ;; org-agenda
 (after! org-agenda
 
