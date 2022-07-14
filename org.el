@@ -164,6 +164,7 @@ See `org-table-formula-constants-local'."
         (setq org-file-apps
               `(
                 ("\\.pdf::\\([0-9]+\\)?\\'" . ,(format "%s file:///%%s#page=%%1" org-file-apps-pdf-browser))
+                ("\\.org.*\\'" . emacs) ;; open org-files natively
                 (auto-mode . system)
                 (directory . system)
                 ))
