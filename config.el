@@ -363,3 +363,7 @@
 ;; (my-load-config! (concat org-directory "config.org")) ;; reload-config with org-babel-load-file
 (require 'org)
 (load! "rjh-compat.el") ;; suspect this is pre-loading org-mode (which is bad karma)
+
+;; Add emacswiki to loadpath
+;; (add-to-list 'load-path (concat doom-private-dir "emacswiki/"))
+(load! "emacswiki/vbnet-mode.el")
