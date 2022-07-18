@@ -234,7 +234,6 @@ See `org-table-formula-constants-local'."
 
   ;; Hooks
      (add-hook 'org-mode-hook 'flyspell-mode)
-     (add-hook 'org-capture-prepare-finalize-hook 'org-id-get-create)
 
   ;; align tags before saving org-mode file
   ;; TODO Cleanup hook
