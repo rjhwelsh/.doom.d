@@ -135,12 +135,6 @@
 (add-to-list 'ps-page-dimensions-database
              `(collinsorg3colA4 486 ,(* 3 270) "CollinsOrganiser3ColumnsOnA4"))
 
-
-;; Gentoo configuration depends on akater's gentoo tools for emacs
-;; (Having trouble with ebuilds, so temporarily disable as of 2021.10.23)
-;; (when (string-match "gentoo" (shell-command-to-string "uname -a"))
-;;   (load! "gentoo.el"))
-
 ;; --------------------------------------------------------------------------------
 ;; :emacs browser
 (cond
