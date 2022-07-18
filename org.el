@@ -176,13 +176,8 @@ See `org-table-formula-constants-local'."
 (eval-after-load 'ox '(require 'ox-koma-letter))
 ;; --------------------------------------------------------------------------------
 
-;; From literate/org/org.org
-
+;; Org link parameters
 (after! org
-  ;; Base config
-  (require 'org-agenda)
-  (require 'ps-print)
-
   (cond
    ((eq system-type 'windows-nt)
     (let
@@ -215,6 +210,15 @@ See `org-table-formula-constants-local'."
             ("\\.pdf\\'" . "evince \"%s\"")
             ("\\.pdf::\\([0-9]+\\)\\'" . "evince \"%s\" -p %1")
             ("\\.mm\\'" . default)))))
+  )
+
+
+;; From literate/org/org.org
+
+(after! org
+  ;; Base config
+  (require 'org-agenda)
+  (require 'ps-print)
 
   ;; Behaviour
      (setq org-log-done 'time)   ;; Record when a task moves to the DONE state
