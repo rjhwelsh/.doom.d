@@ -18,6 +18,32 @@
   (setq org-roam-graph-extra-config '(("rankdir" . "LR")))
   )
 
+;; Automatically created timestamps in headers
+(after! org
+  (defvar org-created-property-name "CREATED"
+    "The name of the org-mode property that stores the creation date of the entry")
+
+  (defun org-set-created-property (&optional active name mod)
+    "Set a property on the entry giving the creation time.
+
+By default the property is called CREATED. If given the `NAME'
+argument will be used instead. If the property already exists, it
+will not be modified.
+
+If given the `mod' argument, use the file's modification time.
+"
+    (interactive)
+    (let* ((created (or name org-created-property-name))
+           (fmt (if active "<%s>" "[%s]"))
+           (modtime (when mod (file-attribute-modification-time (file-attributes (buffer-file-name)))))
+           (now  (format fmt (format-time-string "%Y-%m-%d %a %H:%M" modtime))))
+      (unless (org-entry-get (point) created nil)
+        (org-set-property created now))))
+
+  (add-hook 'org-capture-before-finalize-hook #'org-set-created-property)
+  (add-hook 'org-insert-heading-hook #'org-set-created-property)
+  )
+
 
 ;; From rjh-compat.el
 (after! org
