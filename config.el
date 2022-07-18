@@ -82,6 +82,10 @@
 (setq diary-file (concat org-directory "diary"))
 (setq calendar-date-style 'iso)
 
+;; Display workspaces in the modeline
+(after! doom-modeline
+  (setq doom-modeline-persp-name t))
+
 ;; Reset org-babel-after-executed-hook (fixes redisplay issues when inlineimages are off)
 ;; Redisplay images is added in :lang org default config.
 (after! org
