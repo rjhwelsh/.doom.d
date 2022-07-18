@@ -40,8 +40,14 @@ If given the `mod' argument, use the file's modification time.
       (unless (org-entry-get (point) created nil)
         (org-set-property created now))))
 
-  (add-hook 'org-capture-before-finalize-hook #'org-set-created-property)
+  ;; (add-hook 'org-capture-before-finalize-hook #'org-set-created-property)
   (add-hook 'org-insert-heading-hook #'org-set-created-property)
+
+  ;; Add creation times for any missed items
+  (add-hook! 'org-mode-hook
+    (add-hook 'before-save-hook
+              (lambda () (org-map-entries '(org-set-created-property) nil 'file))
+               nil 'local))
   )
 
 
