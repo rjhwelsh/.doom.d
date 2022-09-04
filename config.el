@@ -1,5 +1,21 @@
 ;;; $DOOMDIR/config.el -*- lexical-binding: t; -*-
 
+;; Advice to trace all functions and the number of calls
+(defvar my-profiler-fn-count (make-hash-table :size 34000))
+(defvar my-profiler-fn-total-count 0)
+
+(defun defun--init-fun-counter (fn &rest r)
+  "Initialize a counter for function"
+  (message (symbol-name fn))
+  (puthash fn 0 my-profiler-fn-count)
+  (advice-add fn :after
+              #'(lambda (&rest r)
+                  (puthash fn (1+ (gethash fn my-profiler-fn-count)) my-profiler-fn-count)
+                  (setq my-profiler-fn-total-count (1+ my-profiler-fn-total-count))
+                  ))
+  )
+(advice-add 'defun :before #'defun--init-fun-counter)
+
 ;; Improve garbage collection
 ;; http://bling.github.io/blog/2016/01/18/why-are-you-changing-gc-cons-threshold/
 (defun my-minibuffer-setup-hook ()
