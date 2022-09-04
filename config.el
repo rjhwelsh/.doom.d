@@ -16,6 +16,19 @@
   )
 (advice-add 'defun :before #'defun--init-fun-counter)
 
+(defun my-profiler-save-log (&optional filename)
+  (interactive)
+  (with-temp-buffer
+    (insert "fn,count\n")
+    (insert (format "*total*,%d\n" my-profiler-fn-total-count))
+    (maphash
+     (lambda (key value)
+       (insert (format "'%s',%d\n" key value))
+       )
+     my-profiler-fn-count)
+    (write-file (or filename (concat doom-private-dir "log/" (format-time-string "%Y-%m-%d-%H_%M_%S-") "my-profiler.csv")))))
+(add-hook 'kill-emacs-hook (lambda () (my-profiler-save-log))) ;; save log on exit
+
 ;; Improve garbage collection
 ;; http://bling.github.io/blog/2016/01/18/why-are-you-changing-gc-cons-threshold/
 (defun my-minibuffer-setup-hook ()
