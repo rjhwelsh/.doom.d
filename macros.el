@@ -120,6 +120,31 @@ Scope and match are passed to `org-map-entries'"
 (load! (expand-file-name "ext/org-tags-expire.el" doom-private-dir))
 (load! (expand-file-name "ext/org-score.el" doom-private-dir))
 )
+
+;; org-clock (show agenda totals on modeline)
+(after! org
+  (defun org-clocktable-totaltime-formatter (ipos tables params)
+    "See `org-clocktable-write-default' source-code"
+    (let* ((total-time (apply #'+ (mapcar #'cadr tables))))
+      (org-duration-from-minutes (or total-time 0))))
+
+  (defun org-clock-get-clock-string--add-clocktable-daily-total (&rest s)
+    "Advice to add daily total clocked time to modeline org-clock-string."
+    (let* ((clocktable-params '(:scope agenda :fileskip0 t :block today-0))
+           (text-props (cdr s))
+           (x (car s))
+           (total-time (org-dblock-write:clocktable
+                        (org-combine-plists
+                         clocktable-params
+                         '(:formatter org-clocktable-totaltime-formatter))))
+           )
+      (apply #'propertize
+             (s-replace "] (" (format "] *%s* (" total-time) x)
+             text-props)
+      ))
+  (advice-add 'org-clock-get-clock-string :filter-return #'org-clock-get-clock-string--add-clocktable-daily-total)
+  )
+
 ;; org-agenda
 (after! org-agenda
 
