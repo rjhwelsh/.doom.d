@@ -27,6 +27,17 @@
                 nil 'local))
   )
 
+;; Add project capture template to org-roam
+(after! org-roam
+  (setq org-roam-capture-templates
+        (append org-roam-capture-templates
+                '(
+                  ("p" "project" plain
+                   (file "template/org-roam/project.txt")
+                   :target (file "%<%Y%m%d%H%M%S>-${slug}.org") :unnarrowed t)
+                  ))
+        ))
+
 ;; Automatically created timestamps in headers
 (after! org
   (defvar org-created-property-name "CREATED"
