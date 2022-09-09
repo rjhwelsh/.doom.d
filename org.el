@@ -18,6 +18,15 @@
   (setq org-roam-graph-extra-config '(("rankdir" . "LR")))
   )
 
+;; Remove org-id from roam files
+(after! org-roam
+  (add-hook! 'org-mode-hook
+    (add-hook 'before-save-hook
+              (lambda ()
+                (when  (org-roam-buffer-p) (org-map-entries '(org-delete-property "ID") nil 'file)))
+                nil 'local))
+  )
+
 ;; Automatically created timestamps in headers
 (after! org
   (defvar org-created-property-name "CREATED"
