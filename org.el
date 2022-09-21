@@ -227,8 +227,15 @@ See `org-table-formula-constants-local'."
                          ;; \\ => /
                          ;;   => \ (spaces)
                          (org-link-revizto5 "/c/Program\\ Files/Vizerra\\ LLC/Revizto5/Service/ReviztoServiceGUI.exe"))
-                     (start-process-shell-command "revizto5" "*revizto5-issue*" org-link-revizto5 "-browser_protocol" (format "revizto5:%s" issue_uri)))))
-        ))
+                     (start-process-shell-command "revizto5" "*revizto5-issue*" org-link-revizto5 "-browser_protocol" (format "revizto5:%s" issue_uri))))
+        :export (lambda (path desc backend)
+                  (cond
+                   ((eq 'html backend)
+                    (if desc
+                        (format "<a href=\"revizto5:%s\">%s</a>" path desc)
+                      (format "<a href=\"revizto5:%s\">revizto5:%s</a>" path path)
+                      ))
+                   )))))
    (t
     (setq org-file-apps
           '((auto-mode . emacs)
