@@ -180,6 +180,11 @@
 ;; :emacs calendar
 (calendar-set-date-style 'european)
 
+;; --------------------------------------------------------------------------------
+;; :core core-editor
+;; Do not save positions in buffers
+(setq save-place-mode nil)
+
 ;; :os auth
 ;; https://www.masteringemacs.org/article/keeping-secrets-in-emacs-gnupg-auth-sources
 (require 'auth-source)
