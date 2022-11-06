@@ -15,6 +15,12 @@
 ;; Define and fix non-existent function in < emacs-28
 (defun native-comp-available-p nil)
 
+;; Redefine play-sounds to use a separate emacs-instance
+(define-advice play-sound-file
+    ( :override (file &optional volume device) parallel-emacs-play-sound-file)
+  "Uses another emacs-instance to play sounds, concurrently."
+  (start-process "sound" "*sound*" "emacs" "-q" "-nl" "-nw" "--batch" "--eval" (format "(play-sound-file %S %S %S)" file volume device)))
+
 (after! org
   ;; Disable cache -- too many warnings!
   (setq org-element-use-cache nil)
